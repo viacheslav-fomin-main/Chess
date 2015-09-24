@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections;
+using System;
 
 public class MoveGenerator {
 	
@@ -16,12 +17,18 @@ public class MoveGenerator {
 		CheckInfo checkInfo = GetCheckInfo (position);
 
 		BitBoard kingMoves = PseudoLegalMovesOnPopulatedBoard (Definitions.PieceName.King, checkInfo.kingSquare, position);
-		checkInfo.hostileControlledSquares.PrintBoardToConsole ("Hostile controlled squares");
 		kingMoves.And(~checkInfo.hostileControlledSquares.board); // king can't move into check
+		if ((isWhite && (position.gameState.castleKingsideW || position.gameState.castleQueensideW)) || (!isWhite && (position.gameState.castleKingsideB || position.gameState.castleQueensideB))) { // if able to castle on one or both sides
+			if (checkInfo.hostileControlledSquares.ContainsPieceAtSquare(new Coord(checkInfo.kingSquare.x-1, checkInfo.kingSquare.y))) { // can't castle queenside if passes through check
+				kingMoves.SetSquare(new Coord(checkInfo.kingSquare.x-2, checkInfo.kingSquare.y), false);
+			}
+			if (checkInfo.hostileControlledSquares.ContainsPieceAtSquare(new Coord(checkInfo.kingSquare.x+1, checkInfo.kingSquare.y))) { // can't castle kingside if passes through check
+				kingMoves.SetSquare(new Coord(checkInfo.kingSquare.x+2, checkInfo.kingSquare.y), false);
+			}
+		}
 		pseudolegalMoveBoards.Add (kingMoves);
 		origins.Add (checkInfo.kingSquare);
 
-		UnityEngine.Debug.Log ("Check : " + checkInfo.inCheck + "  Double check: " + checkInfo.inDoubleCheck);
 		if (!checkInfo.inDoubleCheck) { // no pieces besides king can move when in double check
 			for (int squareIndex =0; squareIndex < 64; squareIndex ++) {
 				if (friendlyPieces.ContainsPieceAtSquare (squareIndex)) {
@@ -42,7 +49,6 @@ public class MoveGenerator {
 
 					if (checkInfo.inCheck) {
 						pseudoLegalMoveBoard.And(checkInfo.checkBlockBoard.board); // if in check, pieces can only move to squares that will block/capture checking piece.
-						checkInfo.checkBlockBoard.PrintBoardToConsole("Check block board");
 					}
 
 					for (int lineDirIndex = 0; lineDirIndex < checkInfo.pinBoards.Count; lineDirIndex++) {
@@ -59,11 +65,65 @@ public class MoveGenerator {
 
 		// convert bitboards to moves
 		for (int i =0; i < pseudolegalMoveBoards.Count; i ++) {
-			for (int j =0; j < 64; j ++) {
-				if (pseudolegalMoveBoards[i].ContainsPieceAtSquare(j)) {
+			for (int squareIndex =0; squareIndex < 64; squareIndex ++) {
+				if (pseudolegalMoveBoards[i].ContainsPieceAtSquare(squareIndex)) {
+					Coord moveFrom = origins[i];
+					Coord moveTo = new Coord(squareIndex);
+
 					GameState newGameState = position.gameState;
 					newGameState.whiteToMove = !newGameState.whiteToMove;
-					movesFound.Add(new Move(origins[i],new Coord(j), newGameState));
+					bool pawnPromotion = false;
+					bool isEnPassantCapture = false;
+					Coord capturedEnPassantPawn = new Coord(); 
+
+					// determine castling right after this move (white)
+					if (isWhite && (newGameState.castleKingsideW || newGameState.castleQueensideW)) {
+						if (moveFrom.algebraic == "e1") { // moving king
+							newGameState.castleKingsideW = false;
+							newGameState.castleQueensideW = false;
+						}
+						else if (moveFrom.algebraic == "a1") { // move rook
+							newGameState.castleQueensideW = false;
+						}
+						else if (moveFrom.algebraic == "h1") {
+							newGameState.castleKingsideW = false;
+						}
+					}
+					// determine castling right after this move (black)
+					if (!isWhite && (newGameState.castleKingsideB || newGameState.castleQueensideB)) {
+						if (moveFrom.algebraic == "e8") { // moving king
+							newGameState.castleKingsideB = false;
+							newGameState.castleQueensideB = false;
+						}
+						else if (moveFrom.algebraic == "a8") { // move rook
+							newGameState.castleQueensideB = false;
+						}
+						else if (moveFrom.algebraic == "h8") {
+							newGameState.castleKingsideB = false;
+						}
+					}
+
+					// pawn info (en passant and promotion)
+					newGameState.enPassantFileIndex = -1; // default ep value indicating no ep
+					if (position.pawnsW.ContainsPieceAtSquare(moveFrom) || position.pawnsB.ContainsPieceAtSquare(moveFrom)) {
+						// determine en passant square created
+						if (Math.Abs(moveFrom.y - moveTo.y) == 2) { // pawn has moved two forward
+							newGameState.enPassantFileIndex = moveFrom.x;
+						}
+
+						// determine en passant capture
+						if (moveTo.y == position.gameState.enPassantFileIndex) {
+							isEnPassantCapture = true;
+							capturedEnPassantPawn = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
+						}
+
+						// determine promotion
+						if (moveTo.y == 7 || moveTo.y == 0) { // has reached first/last rank
+							pawnPromotion = true;
+						}
+					}
+
+					movesFound.Add(new Move(moveFrom, moveTo, newGameState, isWhite, pawnPromotion, isEnPassantCapture, capturedEnPassantPawn));
 				}
 			}
 		}
@@ -111,14 +171,12 @@ public class MoveGenerator {
 
 		// Get attack boards for each hostile piece and combine to form bitboard of all hostile-controlled squares
 		for (int pieceBoardIndex = 0; pieceBoardIndex < hostilePieceBoards.Length; pieceBoardIndex ++) {
-			//BitBoard tempB = new BitBoard(); // TBC
 			for (int squareIndex = 0; squareIndex <= 63; squareIndex ++) {
 				bool isPieceOnBoard = hostilePieceBoards[pieceBoardIndex].ContainsPieceAtSquare(squareIndex);
 
 				if (isPieceOnBoard) {
 
 					BitBoard pieceAttackBoard = AttackBitBoard(pieceBoardOrder[pieceBoardIndex], new Coord(squareIndex), allPieces, !isWhite);
-					//tempB = pieceAttackBoard; // TBC
 					if (pieceAttackBoard.ContainsPieceAtSquare(friendlyKingSquareIndex)) { // incrememnt check count if attack square is same as friendly king
 						checkCount ++;
 					}
@@ -126,7 +184,6 @@ public class MoveGenerator {
 					hostileControlledSquares.Combine(pieceAttackBoard);
 				}
 			}
-			//tempB.PrintBoardToConsole(pieceBoardOrder[pieceBoardIndex].ToString() + " Attack board indiv:"); // TBC
 		}
 
 		checkInfo.inCheck = (checkCount > 0);
@@ -341,7 +398,7 @@ public class MoveGenerator {
 			// add en passant square to capture mask
 			if (position.gameState.enPassantFileIndex != -1) {
 				int rankIndex = (isWhite)?5:2; // rank of ep capture square
-				pawnCaptureMask.SetSquare(new Coord(rankIndex,position.gameState.enPassantFileIndex));
+				pawnCaptureMask.SetSquare(new Coord(position.gameState.enPassantFileIndex,rankIndex));
 			}
 			pieceMovementBoard.And(pawnCaptureMask.board); // pawn can only capture if capture square contains hostile piece
 
@@ -361,11 +418,19 @@ public class MoveGenerator {
 		else {
 			if (piece == Definitions.PieceName.King) {
 				// king is on starting square so castling is a possibility
-				// Note: no consideration is given to colour, so white king will think he is able to castle when on e8.
-				// This will obviously be picked up during legal move checking.
-				if (origin.x == 4 && (origin.y == 0 || origin.y == 7)) {
-					pieceMovementBoard.TrySetSquare (new Coord (origin.x + 2, origin.y));
-					pieceMovementBoard.TrySetSquare (new Coord (origin.x - 2, origin.y));
+				if ((isWhite && position.gameState.castleKingsideW) || (!isWhite && position.gameState.castleKingsideB)) {
+					if (!allPieces.ContainsPieceAtSquare(new Coord(5,origin.y))) { // can't castle kingside if piece on f1/f8
+						if ((isWhite && position.rooksW.ContainsPieceAtSquare(new Coord(7,0))) || (!isWhite && position.rooksB.ContainsPieceAtSquare(new Coord(7,7)))) { // must be rook on a8/h8
+							pieceMovementBoard.TrySetSquare (new Coord (origin.x + 2, origin.y));
+						}
+					}
+				}
+				if (isWhite && position.gameState.castleQueensideW || !isWhite && position.gameState.castleQueensideB) {
+					if (!allPieces.ContainsPieceAtSquare(new Coord(1,origin.y))) { // can't castle queenside if piece on b1/b8
+						if ((isWhite && position.rooksW.ContainsPieceAtSquare(new Coord(0,0))) || (!isWhite && position.rooksB.ContainsPieceAtSquare(new Coord(0,7)))) { // must be rook on a1/h1
+							pieceMovementBoard.TrySetSquare (new Coord (origin.x - 2, origin.y));
+						}
+					}
 				}
 			}
 

@@ -36,7 +36,8 @@ public class HumanPlayer : Player {
 		}
 
 		for (int i = 0; i < legalMovesInPosition.Length; i ++) {
-			if (legalMovesInPosition [i].algebraicMove == algebraicMove) { // move confirmed as legal
+			string moveCoords = legalMovesInPosition [i].algebraicMove.Substring(0,4); // cut off pawn promotion
+			if (moveCoords == algebraicMove) { // move confirmed as legal
 				MakeMove(legalMovesInPosition[i]);
 			}
 		}

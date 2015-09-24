@@ -36,6 +36,26 @@ public struct Position {
 		kingB.MakeMove(move);
 		allPiecesB.MakeMove(move);
 
+		// put queen on board if promotion
+		if (move.isPawnPromotion) {
+			if (move.whitesMove) {
+				queensW.SetSquare(move.to);
+				pawnsW.SetSquare(move.to,false);
+			}
+			else {
+				queensB.SetSquare(move.to);
+				pawnsB.SetSquare(move.to,false);
+			}
+		}
+
+		// remove captured pawn if en passant
+		if (move.isEnPassantCapture) {
+			pawnsW.SetSquare(move.enPassantPawnLocation,false);
+			pawnsB.SetSquare(move.enPassantPawnLocation,false);
+			allPiecesB.SetSquare(move.enPassantPawnLocation,false);
+			allPiecesW.SetSquare(move.enPassantPawnLocation,false);
+		}
+
 		gameState = move.gameStateAfterMove;
 	}
 
