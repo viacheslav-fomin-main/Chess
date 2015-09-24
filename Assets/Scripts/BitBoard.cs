@@ -1,0 +1,96 @@
+﻿using System;
+using System.Collections;
+
+/*
+ * The board is represented as a 64 bit integer.
+ * The least significant bit represents a1, the most, h8
+ */
+
+public struct BitBoard {
+
+	public ulong board;
+
+	public BitBoard(ulong _board) {
+		board = _board;
+	}
+
+	public void MakeMove(Move move) {
+		bool isMovingPiece = ContainsPieceAtSquare (move.from);
+		SetSquare (move.to, isMovingPiece);
+		SetSquare (move.from, false);
+	}
+
+	/// <summary>
+	/// Sets whether or not a piece is located at given coordinate
+	/// </summary>
+	public void SetSquare(Coord square, bool containsPiece = true) {
+		if (containsPiece) {
+			board |= 1UL << square.flatIndex;
+		} else {
+			board &= ~(1UL << square.flatIndex);
+		}
+	}
+	/// <summary>
+	/// IF the given coordinate exists on the board, sets whether or not a piece is located at given coordinate 
+	/// </summary>
+	public void TrySetSquare(Coord square, bool containsPiece = true) {
+		if (square.inBoard) {
+			SetSquare(square, containsPiece);
+		}
+	}
+
+	/// <summary>
+	/// Returns true if a piece is located at given coordinate
+	/// </summary>
+	public bool ContainsPieceAtSquare(Coord square) {
+		if (!square.inBoard) {
+			return false;
+		}
+		return ContainsPieceAtSquare(square.flatIndex);
+	}
+
+	/// <summary>
+	/// Returns true if a piece is located at given index
+	/// </summary>
+	public bool ContainsPieceAtSquare(int squareIndex) {
+		return (board & (1UL << squareIndex)) != 0;
+	}
+
+	/// <summary>
+	/// Removes all bits from this board which are not 1 in the mask
+	/// </summary>
+	public void And(ulong mask) {
+		board &= mask;
+	}
+
+	/// <summary>
+	/// Combines given bitboards into one
+	/// </summary>
+	public static BitBoard Combine(params BitBoard[] bitBoards) {
+		ulong combinedBoard = 0UL;
+
+		for (int i =0; i < bitBoards.Length; i ++) {
+			combinedBoard |= bitBoards[i].board;
+		}
+
+		return new BitBoard(combinedBoard);
+	}
+
+	/// <summary>
+	/// Prints a graphical representation of this bitboard to the console
+	/// </summary>
+	public void PrintBoardToConsole(string heading = "") {
+		string output = heading + " val = " + board;
+
+		for (int y = 7; y >= 0; y--) {
+			output += "\n";
+			for (int x = 0; x < 8; x ++) {
+				Coord square = new Coord(x,y);
+				output += ((ContainsPieceAtSquare(square))?"1":"0");
+			}
+		}
+		UnityEngine.Debug.Log (output);
+	}
+
+
+}
