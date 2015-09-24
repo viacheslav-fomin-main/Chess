@@ -46,7 +46,7 @@ public class ChessUI : MonoBehaviour {
 
 	void Awake() {
 		CreateBoardUI ();
-		SetPosition (editorFen);
+		SetPosition (Definitions.startFen);
 	}
 
 	/// <summary>

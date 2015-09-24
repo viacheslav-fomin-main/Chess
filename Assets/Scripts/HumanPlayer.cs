@@ -6,7 +6,9 @@ public class HumanPlayer : Player {
 
 	public override void Init (bool white) {
 		base.Init (white);
-		legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
+		if (isWhite) {
+			legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
+		}
 	}
 
 	/// <summary>

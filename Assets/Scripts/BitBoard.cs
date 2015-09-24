@@ -63,10 +63,16 @@ public struct BitBoard {
 		board &= mask;
 	}
 
+	public void Combine(params BitBoard[] bitBoards) {
+		for (int i =0; i < bitBoards.Length; i ++) {
+			board |= bitBoards[i].board;
+		}
+	}
+
 	/// <summary>
 	/// Combines given bitboards into one
 	/// </summary>
-	public static BitBoard Combine(params BitBoard[] bitBoards) {
+	public static BitBoard Combination(params BitBoard[] bitBoards) {
 		ulong combinedBoard = 0UL;
 
 		for (int i =0; i < bitBoards.Length; i ++) {
@@ -74,6 +80,18 @@ public struct BitBoard {
 		}
 
 		return new BitBoard(combinedBoard);
+	}
+
+	/// <summary>
+	/// Returns the index of the piece in a bitboard containing only one piece.
+	/// </summary>
+	public static int BitIndex(ulong singlePieceBoard) {
+		int index = 0;
+		while (singlePieceBoard != 1) {
+			singlePieceBoard >>= 1;
+			index ++;
+		}
+		return index;
 	}
 
 	/// <summary>

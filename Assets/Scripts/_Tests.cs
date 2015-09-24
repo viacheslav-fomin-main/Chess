@@ -8,6 +8,7 @@ public class _Tests : MonoBehaviour {
 	void Start () {
 
 
+		/*
 		Position p = new Position ();
 		p.SetPositionFromFen (Definitions.startFen);
 		MoveGenerator moveG = new MoveGenerator ();
@@ -17,6 +18,7 @@ public class _Tests : MonoBehaviour {
 			string moveS = moves[i].from.algebraic + moves[i].to.algebraic;
 			print (i + ". " + moveS);
 		}
+		*/
 		/*
 		long a = System.GC.GetTotalMemory (true);
 		print (a + " ");

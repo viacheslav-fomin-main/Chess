@@ -108,8 +108,8 @@ public struct Position {
 			}
 		}
 
-		allPiecesW = BitBoard.Combine (rooksW, knightsW, bishopsW, queensW, kingW, pawnsW);
-		allPiecesB = BitBoard.Combine (rooksB, knightsB, bishopsB, queensB, kingB, pawnsB);
+		allPiecesW = BitBoard.Combination (rooksW, knightsW, bishopsW, queensW, kingW, pawnsW);
+		allPiecesB = BitBoard.Combination (rooksB, knightsB, bishopsB, queensB, kingB, pawnsB);
 
 		// Game state
 		string sideToMove = fenSections [1];
