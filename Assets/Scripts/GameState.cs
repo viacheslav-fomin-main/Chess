@@ -14,6 +14,7 @@ public struct GameState {
 	public bool castleQueensideB; 
 
 	// The file index (a=0, h=7) of a pawn that has advanced two squares in the last move
+	// If there is no en passant square, this is set to -1
 	public int enPassantFileIndex;
 
 	public bool whiteToMove;
