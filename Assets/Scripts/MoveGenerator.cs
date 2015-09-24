@@ -70,11 +70,9 @@ public class MoveGenerator {
 					Coord moveFrom = origins[i];
 					Coord moveTo = new Coord(squareIndex);
 
+					Move newMove = new Move();
 					GameState newGameState = position.gameState;
 					newGameState.whiteToMove = !newGameState.whiteToMove;
-					bool pawnPromotion = false;
-					bool isEnPassantCapture = false;
-					Coord capturedEnPassantPawn = new Coord(); 
 
 					// determine castling right after this move (white)
 					if (isWhite && (newGameState.castleKingsideW || newGameState.castleQueensideW)) {
@@ -103,6 +101,23 @@ public class MoveGenerator {
 						}
 					}
 
+					// is castling move:
+					if (position.kingB.ContainsPieceAtSquare(moveFrom) || position.kingW.ContainsPieceAtSquare(moveFrom)) {
+						int deltaMoveX = moveTo.x - moveFrom.x;
+						if (Math.Abs(deltaMoveX) == 2) { // castling
+							newMove.isCastles = true;
+							if (deltaMoveX < 0) { // queenside
+								newMove.rookFrom = new Coord(0,moveFrom.y);
+								newMove.rookTo = new Coord(3,moveFrom.y);
+							}
+							else {
+								newMove.rookFrom = new Coord(7,moveFrom.y);
+								newMove.rookTo = new Coord(5,moveFrom.y);
+							}
+
+						}
+					}
+
 					// pawn info (en passant and promotion)
 					newGameState.enPassantFileIndex = -1; // default ep value indicating no ep
 					if (position.pawnsW.ContainsPieceAtSquare(moveFrom) || position.pawnsB.ContainsPieceAtSquare(moveFrom)) {
@@ -113,17 +128,21 @@ public class MoveGenerator {
 
 						// determine en passant capture
 						if (moveTo.y == position.gameState.enPassantFileIndex) {
-							isEnPassantCapture = true;
-							capturedEnPassantPawn = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
+							newMove.isEnPassantCapture = true;
+							newMove.enPassantPawnLocation = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
 						}
 
 						// determine promotion
 						if (moveTo.y == 7 || moveTo.y == 0) { // has reached first/last rank
-							pawnPromotion = true;
+							newMove.isPawnPromotion = true;
 						}
 					}
+					newMove.from = moveFrom;
+					newMove.to = moveTo;
+					newMove.gameStateAfterMove = newGameState;
+					newMove.whitesMove = isWhite;
 
-					movesFound.Add(new Move(moveFrom, moveTo, newGameState, isWhite, pawnPromotion, isEnPassantCapture, capturedEnPassantPawn));
+					movesFound.Add(newMove);
 				}
 			}
 		}
@@ -426,7 +445,7 @@ public class MoveGenerator {
 					}
 				}
 				if (isWhite && position.gameState.castleQueensideW || !isWhite && position.gameState.castleQueensideB) {
-					if (!allPieces.ContainsPieceAtSquare(new Coord(1,origin.y))) { // can't castle queenside if piece on b1/b8
+					if (!allPieces.ContainsPieceAtSquare(new Coord(1,origin.y)) && !allPieces.ContainsPieceAtSquare(new Coord(3,origin.y))) { // can't castle queenside if piece on b1/b8
 						if ((isWhite && position.rooksW.ContainsPieceAtSquare(new Coord(0,0))) || (!isWhite && position.rooksB.ContainsPieceAtSquare(new Coord(0,7)))) { // must be rook on a1/h1
 							pieceMovementBoard.TrySetSquare (new Coord (origin.x - 2, origin.y));
 						}

@@ -56,6 +56,21 @@ public struct Position {
 			allPiecesW.SetSquare(move.enPassantPawnLocation,false);
 		}
 
+		// Castles
+		if (move.isCastles) {
+			if (move.whitesMove) {
+				rooksW.SetSquare(move.rookFrom,false);
+				rooksW.SetSquare(move.rookTo);
+				allPiecesW.SetSquare(move.rookFrom,false);
+				allPiecesW.SetSquare(move.rookTo);
+			}
+			else {
+				rooksB.SetSquare(move.rookFrom,false);
+				rooksB.SetSquare(move.rookTo);
+				allPiecesB.SetSquare(move.rookFrom,false);
+				allPiecesB.SetSquare(move.rookTo);
+			}
+		}
 		gameState = move.gameStateAfterMove;
 	}
 

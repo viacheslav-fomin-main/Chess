@@ -10,6 +10,8 @@ public class PlayerManager : MonoBehaviour {
 	Player whitePlayer;
 	Player blackPlayer;
 
+	bool whiteToPlay = true;
+
 	ChessInput boardInput;
 
 	void Start() {
@@ -36,13 +38,32 @@ public class PlayerManager : MonoBehaviour {
 		whitePlayer = (Player)whiteHuman ?? (Player)whiteAI;
 		blackPlayer = (Player)blackHuman ?? (Player)blackAI;
 
+		whitePlayer.OnMove += OnMove;
+		blackPlayer.OnMove += OnMove;
+
 		whitePlayer.Init (true);
 		blackPlayer.Init (false);
+
+		whitePlayer.RequestMove ();
 
 		//whitePlayer = ((whitePlayerType == PlayerType.Human) ? (Player)new HumanPlayer () : (Player)new AIPlayer ());
 		//blackPlayer = ((blackPlayerType == PlayerType.Human) ? (Player)new HumanPlayer () : (Player)new AIPlayer ());
 
 
+	}
+
+	void OnMove() {
+		whiteToPlay = !whiteToPlay;
+
+		Invoke ("RequestAIResponse",.1f);
+	}
+
+	void RequestAIResponse() {
+		if (whiteToPlay) {
+			whitePlayer.RequestMove ();
+		} else {
+			blackPlayer.RequestMove ();
+		}
 	}
 
 

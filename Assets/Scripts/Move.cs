@@ -3,7 +3,7 @@
  * Represents a chess move 
  */
 
-public struct Move {
+public class Move {
 
 	public Coord from;
 	public Coord to;
@@ -13,9 +13,14 @@ public struct Move {
 	public bool isEnPassantCapture;
 	public Coord enPassantPawnLocation;
 
+	public bool isCastles;
+	public Coord rookFrom;
+	public Coord rookTo;
+
 	// Defines the game state following this move (castling rights, en passant square etc)
 	public GameState gameStateAfterMove;
 
+	/*
 	public Move(Coord _from, Coord _to, GameState _newGameState, bool isWhite, bool promote, bool isEnPassant, Coord capturedEnPassantPawn) {
 		from = _from;
 		to = _to;
@@ -26,7 +31,7 @@ public struct Move {
 		isEnPassantCapture = isEnPassant;
 		enPassantPawnLocation = capturedEnPassantPawn;
 	}
-
+*/
 	public string algebraicMove {
 		get {
 			string promotionKey = "";

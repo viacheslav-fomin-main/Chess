@@ -9,6 +9,7 @@ public class Player {
 
 	public static Position currentPosition;
 	public MoveGenerator moveGenerator;
+	public Action OnMove;
 
 	protected bool isWhite;
 
@@ -24,9 +25,15 @@ public class Player {
 	protected virtual void MakeMove(Move move) {
 		ChessUI.instance.MakeMove (move.algebraicMove);
 		currentPosition.MakeMove (move);
+
+		if (OnMove != null) {
+			OnMove();
+		}
 	}
 
+	public virtual void RequestMove() {
 
+	}
 
 
 

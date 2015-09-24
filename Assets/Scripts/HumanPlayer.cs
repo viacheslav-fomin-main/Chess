@@ -6,9 +6,7 @@ public class HumanPlayer : Player {
 
 	public override void Init (bool white) {
 		base.Init (white);
-		if (isWhite) {
-			legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
-		}
+
 	}
 
 	/// <summary>
@@ -41,6 +39,12 @@ public class HumanPlayer : Player {
 				MakeMove(legalMovesInPosition[i]);
 			}
 		}
+	}
+
+	public override void RequestMove ()
+	{
+		base.RequestMove ();
+		legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
 	}
 
 }
