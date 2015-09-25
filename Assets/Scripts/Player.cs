@@ -25,7 +25,6 @@ public class Player {
 	protected virtual void MakeMove(Move move) {
 		ChessUI.instance.MakeMove (move.algebraicMove);
 		currentPosition.MakeMove (move);
-
 		if (OnMove != null) {
 			OnMove();
 		}

@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-public class MoveGenerator {
+public class MoveGenerator : IMoveGenerator {
 	
 	public Move[] GetAllLegalMoves(Position position) {
 		List<Move> movesFound = new List<Move> ();
@@ -127,7 +127,7 @@ public class MoveGenerator {
 						}
 
 						// determine en passant capture
-						if (moveTo.y == position.gameState.enPassantFileIndex) {
+						if (moveTo.x == position.gameState.enPassantFileIndex) {
 							newMove.isEnPassantCapture = true;
 							newMove.enPassantPawnLocation = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
 						}

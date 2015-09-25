@@ -45,17 +45,16 @@ public class PlayerManager : MonoBehaviour {
 		blackPlayer.Init (false);
 
 		whitePlayer.RequestMove ();
-
-		//whitePlayer = ((whitePlayerType == PlayerType.Human) ? (Player)new HumanPlayer () : (Player)new AIPlayer ());
-		//blackPlayer = ((blackPlayerType == PlayerType.Human) ? (Player)new HumanPlayer () : (Player)new AIPlayer ());
-
-
 	}
 
 	void OnMove() {
 		whiteToPlay = !whiteToPlay;
 
-		Invoke ("RequestAIResponse",.1f);
+		if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
+			Invoke ("RequestAIResponse", .1f); // force delay between moves when two AI are playing
+		} else {
+			RequestAIResponse();
+		}
 	}
 
 	void RequestAIResponse() {

@@ -6,10 +6,14 @@ public class AIPlayer : Player {
 	public override void RequestMove ()
 	{
 		base.RequestMove ();
-		Move[] moves = moveGenerator.GetAllLegalMoves (currentPosition);
+
+		Search search = new Search ();
+		Move bestMove = search.SearchForBestMove (currentPosition);
+		MakeMove (bestMove);
+		//Move[] moves = moveGenerator.GetAllLegalMoves (currentPosition);
 		
-		Random random = new Random ();
-		MakeMove (moves [random.Next (0, moves.Length)]);
+		//Random random = new Random ();
+		//MakeMove (moves [random.Next (0, moves.Length)]);
 	}
 
 
