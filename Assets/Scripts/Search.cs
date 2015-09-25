@@ -130,10 +130,12 @@ public class Search {
 			int eval = 0;
 			for (int i = 0; i < 64; i ++) {
 				if (currentPosition.allPiecesB.ContainsPieceAtSquare(i)) {
-					eval -= 64-i;
+					//eval -= new Coord(64-i).y;
+				}
+				if (currentPosition.allPiecesW.ContainsPieceAtSquare(i)) {
+					eval += new Coord(64-i).y;
 				}
 			}
-
 			return eval;
 		}
 		

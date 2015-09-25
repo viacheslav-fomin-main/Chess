@@ -63,6 +63,7 @@ public class MoveGenerator : IMoveGenerator {
 			}
 		}
 
+
 		// convert bitboards to moves
 		for (int i =0; i < pseudolegalMoveBoards.Count; i ++) {
 			for (int squareIndex =0; squareIndex < 64; squareIndex ++) {
@@ -127,7 +128,7 @@ public class MoveGenerator : IMoveGenerator {
 						}
 
 						// determine en passant capture
-						if (moveTo.x == position.gameState.enPassantFileIndex) {
+						if (moveTo.x == position.gameState.enPassantFileIndex && moveFrom.x != moveTo.x) { // pawn captures to same file as ep square; therefore is capturing en passant
 							newMove.isEnPassantCapture = true;
 							newMove.enPassantPawnLocation = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
 						}
@@ -137,6 +138,7 @@ public class MoveGenerator : IMoveGenerator {
 							newMove.isPawnPromotion = true;
 						}
 					}
+
 					newMove.from = moveFrom;
 					newMove.to = moveTo;
 					newMove.gameStateAfterMove = newGameState;
