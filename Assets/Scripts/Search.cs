@@ -4,9 +4,10 @@ using System;
 
 public class Search {
 
-	IMoveGenerator moveGenerator;
+	public static IMoveGenerator moveGenerator;
 
 	static int nodesSearched;
+	static int breakCount;
 
 	int searchDepth;
 	int bestScoreSoFar;
@@ -14,19 +15,20 @@ public class Search {
 
 	public Move SearchForBestMove(Position position) {
 		nodesSearched = 0;
+		breakCount = 0;
 		moveGenerator = new MoveGenerator ();
 
 		System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch ();
 		watch.Start ();
 
-		SearchNode origin = new SearchNode (position, moveGenerator);
+		SearchNode origin = new SearchNode (position);
 		searchDepth = 3;
 		bool isMaximising = position.gameState.whiteToMove;
 		bestScoreSoFar = (isMaximising) ? int.MinValue : int.MaxValue;
 		AlphaBetaSearch (origin, searchDepth, int.MinValue, int.MaxValue, position.gameState.whiteToMove);
 
 		watch.Stop ();
-		UnityEngine.Debug.Log (nodesSearched + " nodes searched in " + watch.ElapsedMilliseconds + " ms");
+		UnityEngine.Debug.Log (nodesSearched + " nodes searched in " + watch.ElapsedMilliseconds + " ms; breakcount: " + breakCount);
 
 		return bestMoveSoFar;
 	}
@@ -52,17 +54,19 @@ public class Search {
 					}
 				}
 
-				if (alpha >= beta) { // break
+				if (beta <= alpha) { // break
+					breakCount++;
 					break;
 				}
 			}
 			return value;
 		}
+
 		// black is trying to obtain the lowest evaluation possible
 		value = int.MaxValue;
 		foreach (SearchNode child in children) {
 			value = Math.Min(value,AlphaBetaSearch(child, depth-1, alpha, beta, true));
-			alpha = Math.Min(alpha, value);
+			beta = Math.Min(beta, value);
 			
 			if(depth == searchDepth ) { // has searched full depth and is now looking at top layer of moves to select the best
 				if (value<bestScoreSoFar) {
@@ -71,7 +75,8 @@ public class Search {
 				}
 			}
 			
-			if (alpha >= beta) { // break
+			if (beta <= alpha) { // break
+				breakCount++;
 				break;
 			}
 		}
@@ -87,17 +92,15 @@ public class Search {
 		List<SearchNode> children;
 		Position currentPosition;
 		public Move move { get; private set; } // The move the got to this position
-		IMoveGenerator moveGenerator;
+	
 
-		public SearchNode(Position p, IMoveGenerator _moveGenerator) {
+		public SearchNode(Position p) {
 			currentPosition = p;
-			moveGenerator = _moveGenerator;
 		}
 		
-		public SearchNode(Position p, IMoveGenerator _moveGenerator, Move m) {
+		public SearchNode(Position p, Move m) {
 			currentPosition = p;
 			move = m;
-			moveGenerator = _moveGenerator;
 		}
 
 		public void Init() {
@@ -109,7 +112,7 @@ public class Search {
 			for (int i =0; i <allMoves.Length; i ++) {
 				Position childPosition = currentPosition;
 				childPosition.MakeMove(allMoves[i]);
-				children.Add(new SearchNode(childPosition, moveGenerator, allMoves[i]));
+				children.Add(new SearchNode(childPosition, allMoves[i]));
 			}
 		}
 		
@@ -125,17 +128,18 @@ public class Search {
 
 			//Random r = new Random ();
 			//int eval = r.Next (-5000, 5000);
-			// = UnityEngine.Random.Range (-5000, 5000);
+
 			//UnityEngine.Debug.Log ("Eval: " + eval);
 			int eval = 0;
 			for (int i = 0; i < 64; i ++) {
 				if (currentPosition.allPiecesB.ContainsPieceAtSquare(i)) {
-					//eval -= new Coord(64-i).y;
+					eval -= new Coord(64-i).y;
 				}
 				if (currentPosition.allPiecesW.ContainsPieceAtSquare(i)) {
-					eval += new Coord(64-i).y;
+					eval += new Coord(63-i).y+1;
 				}
 			}
+			//eval = UnityEngine.Random.Range (-5000, 5000);
 			return eval;
 		}
 		
