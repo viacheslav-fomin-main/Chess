@@ -9,7 +9,7 @@ public class Move {
 	public Coord to;
 	
 	public bool isPawnPromotion;
-	public bool whitesMove;
+	public bool isWhiteMove;
 	public bool isEnPassantCapture;
 	public Coord enPassantPawnLocation;
 
@@ -19,12 +19,22 @@ public class Move {
 
 	// Defines the game state following this move (castling rights, en passant square etc)
 	public GameState gameStateAfterMove;
-	
+
+	public Move(Coord _from, Coord _to, GameState newGameState) {
+		from = _from;
+		to = _to;
+		gameStateAfterMove = newGameState;
+	}
+
+	public Move() {
+
+	}
+
 	public string algebraicMove {
 		get {
 			string promotionKey = "";
 			if (isPawnPromotion) {
-				promotionKey = (whitesMove)?"Q":"q";
+				promotionKey = (isWhiteMove)?"Q":"q";
 			}
 			return from.algebraic + to.algebraic + promotionKey;
 		}

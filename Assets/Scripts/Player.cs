@@ -8,7 +8,7 @@ using System;
 public class Player {
 
 	public static Position currentPosition;
-	public MoveGenerator moveGenerator;
+	public IMoveGenerator moveGenerator;
 	public Action OnMove;
 
 	protected bool isWhite;
@@ -16,7 +16,7 @@ public class Player {
 	public virtual void Init(bool white) {
 		currentPosition = new Position ();
 		currentPosition.SetPositionFromFen (Definitions.startFen);
-		moveGenerator = new MoveGenerator ();
+		moveGenerator = new MoveGenerator2 ();
 
 		isWhite = white;
 	}

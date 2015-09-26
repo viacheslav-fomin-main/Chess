@@ -4,7 +4,7 @@ using System;
 
 public class Search {
 
-	public static IMoveGenerator moveGenerator;
+	public static MoveGenerator2 moveGenerator;
 
 	static int nodesSearched;
 	static int breakCount;
@@ -16,7 +16,7 @@ public class Search {
 	public Move SearchForBestMove(Position position) {
 		nodesSearched = 0;
 		breakCount = 0;
-		moveGenerator = new MoveGenerator ();
+		moveGenerator = new MoveGenerator2 ();
 
 		System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch ();
 		watch.Start ();
@@ -30,6 +30,7 @@ public class Search {
 		watch.Stop ();
 		UnityEngine.Debug.Log (nodesSearched + " nodes searched in " + watch.ElapsedMilliseconds + " ms; breakcount: " + breakCount);
 
+		moveGenerator.PrintTimes ();
 		return bestMoveSoFar;
 	}
 

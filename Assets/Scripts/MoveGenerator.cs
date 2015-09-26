@@ -128,7 +128,7 @@ public class MoveGenerator : IMoveGenerator {
 						}
 
 						// determine en passant capture
-						if (moveTo.x == position.gameState.enPassantFileIndex && moveFrom.x != moveTo.x) { // pawn captures to same file as ep square; therefore is capturing en passant
+						if (moveTo.x == position.gameState.enPassantFileIndex && moveTo.y == ((isWhite)?4:3)) {
 							newMove.isEnPassantCapture = true;
 							newMove.enPassantPawnLocation = new Coord(moveTo.y, (isWhite)?4:3);// location of pawn that is being captured enpassant
 						}
@@ -142,7 +142,7 @@ public class MoveGenerator : IMoveGenerator {
 					newMove.from = moveFrom;
 					newMove.to = moveTo;
 					newMove.gameStateAfterMove = newGameState;
-					newMove.whitesMove = isWhite;
+					newMove.isWhiteMove = isWhite;
 
 					movesFound.Add(newMove);
 				}
@@ -319,31 +319,31 @@ public class MoveGenerator : IMoveGenerator {
 
 		// Knight
 		if (piece == Definitions.PieceName.Knight) {
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y + 2));
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y + 2));
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y - 2));
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y - 2));
-			attackBoard.TrySetSquare (new Coord (origin.x + 2, origin.y + 1));
-			attackBoard.TrySetSquare (new Coord (origin.x + 2, origin.y - 1));
-			attackBoard.TrySetSquare (new Coord (origin.x - 2, origin.y + 1));
-			attackBoard.TrySetSquare (new Coord (origin.x - 2, origin.y - 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y + 2));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y + 2));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y - 2));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y - 2));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 2, origin.y + 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 2, origin.y - 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 2, origin.y + 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 2, origin.y - 1));
 		}
 		// King
 		else if (piece == Definitions.PieceName.King) { 
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y + 1));
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y - 1));
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y));
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y - 1));
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y + 1));
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y));
-			attackBoard.TrySetSquare (new Coord (origin.x, origin.y + 1));
-			attackBoard.TrySetSquare (new Coord (origin.x, origin.y - 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y + 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y - 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y - 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y + 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y));
+			attackBoard.SafeSetSquare (new Coord (origin.x, origin.y + 1));
+			attackBoard.SafeSetSquare (new Coord (origin.x, origin.y - 1));
 		}
 		// Pawns
 		else if (piece == Definitions.PieceName.Pawn) {
 			int advanceDir = (isWhite) ? 1 : -1;
-			attackBoard.TrySetSquare (new Coord (origin.x + 1, origin.y + advanceDir)); // attack diagonal right
-			attackBoard.TrySetSquare (new Coord (origin.x - 1, origin.y + advanceDir)); // attack diagonal left
+			attackBoard.SafeSetSquare (new Coord (origin.x + 1, origin.y + advanceDir)); // attack diagonal right
+			attackBoard.SafeSetSquare (new Coord (origin.x - 1, origin.y + advanceDir)); // attack diagonal left
 		}
 		// Rook, Bishop, Queen
 		else {
@@ -363,14 +363,14 @@ public class MoveGenerator : IMoveGenerator {
 					if (piece == Definitions.PieceName.Rook || piece == Definitions.PieceName.Queen) {
 						// Horizontal
 						if (horizontalOpen) {
-							attackBoard.TrySetSquare(horizontal);
+							attackBoard.SafeSetSquare(horizontal);
 							if (allPieces.ContainsPieceAtSquare(horizontal)) {
 								horizontalOpen = false;
 							}
 						}
 						// Vertical
 						if (verticalOpen) {
-							attackBoard.TrySetSquare(vertical);
+							attackBoard.SafeSetSquare(vertical);
 							if (allPieces.ContainsPieceAtSquare(vertical)) {
 								verticalOpen = false;
 							}
@@ -379,14 +379,14 @@ public class MoveGenerator : IMoveGenerator {
 					if (piece == Definitions.PieceName.Bishop || piece == Definitions.PieceName.Queen) {
 						// Left Diagonal
 						if (leftDiagonalOpen) {
-							attackBoard.TrySetSquare(leftDiagonal);
+							attackBoard.SafeSetSquare(leftDiagonal);
 							if (allPieces.ContainsPieceAtSquare(leftDiagonal)) {
 								leftDiagonalOpen = false;
 							}
 						}
 						// Right Diagonal
 						if (rightDiagonalOpen) {
-							attackBoard.TrySetSquare(rightDiagonal);
+							attackBoard.SafeSetSquare(rightDiagonal);
 							if (allPieces.ContainsPieceAtSquare(rightDiagonal)) {
 								rightDiagonalOpen = false;
 							}
@@ -425,12 +425,12 @@ public class MoveGenerator : IMoveGenerator {
 
 			// pawn movement:
 			if (!allPieces.ContainsPieceAtSquare (advanceSquare)) { // pawn is blocked from advancing by any piece
-				pieceMovementBoard.TrySetSquare (advanceSquare);
+				pieceMovementBoard.SafeSetSquare (advanceSquare);
 			
 				if (origin.y == 1 || origin.y == 6) { // advance two squares on first move
 					Coord doubleAdvanceSquare = new Coord (origin.x, origin.y + advanceDir * 2);
 					if (!allPieces.ContainsPieceAtSquare (doubleAdvanceSquare)) {
-						pieceMovementBoard.TrySetSquare (doubleAdvanceSquare);
+						pieceMovementBoard.SafeSetSquare (doubleAdvanceSquare);
 					}
 				}
 			}
@@ -442,14 +442,14 @@ public class MoveGenerator : IMoveGenerator {
 				if ((isWhite && position.gameState.castleKingsideW) || (!isWhite && position.gameState.castleKingsideB)) {
 					if (!allPieces.ContainsPieceAtSquare(new Coord(5,origin.y))) { // can't castle kingside if piece on f1/f8
 						if ((isWhite && position.rooksW.ContainsPieceAtSquare(new Coord(7,0))) || (!isWhite && position.rooksB.ContainsPieceAtSquare(new Coord(7,7)))) { // must be rook on a8/h8
-							pieceMovementBoard.TrySetSquare (new Coord (origin.x + 2, origin.y));
+							pieceMovementBoard.SafeSetSquare (new Coord (origin.x + 2, origin.y));
 						}
 					}
 				}
 				if (isWhite && position.gameState.castleQueensideW || !isWhite && position.gameState.castleQueensideB) {
 					if (!allPieces.ContainsPieceAtSquare(new Coord(1,origin.y)) && !allPieces.ContainsPieceAtSquare(new Coord(3,origin.y))) { // can't castle queenside if piece on b1/b8
 						if ((isWhite && position.rooksW.ContainsPieceAtSquare(new Coord(0,0))) || (!isWhite && position.rooksB.ContainsPieceAtSquare(new Coord(0,7)))) { // must be rook on a1/h1
-							pieceMovementBoard.TrySetSquare (new Coord (origin.x - 2, origin.y));
+							pieceMovementBoard.SafeSetSquare (new Coord (origin.x - 2, origin.y));
 						}
 					}
 				}

@@ -33,7 +33,7 @@ public struct BitBoard {
 	/// <summary>
 	/// IF the given coordinate exists on the board, sets whether or not a piece is located at given coordinate 
 	/// </summary>
-	public void TrySetSquare(Coord square, bool containsPiece = true) {
+	public void SafeSetSquare(Coord square, bool containsPiece = true) {
 		if (square.inBoard) {
 			SetSquare(square, containsPiece);
 		}
@@ -43,9 +43,6 @@ public struct BitBoard {
 	/// Returns true if a piece is located at given coordinate
 	/// </summary>
 	public bool ContainsPieceAtSquare(Coord square) {
-		if (!square.inBoard) {
-			return false;
-		}
 		return ContainsPieceAtSquare(square.flatIndex);
 	}
 
@@ -55,6 +52,24 @@ public struct BitBoard {
 	public bool ContainsPieceAtSquare(int squareIndex) {
 		return (board & (1UL << squareIndex)) != 0;
 	}
+
+	/// <summary>
+	/// Returns true if a piece is located at given coordinate
+	/// </summary>
+	public bool SafeContainsPieceAtSquare(Coord square) {
+		return SafeContainsPieceAtSquare(square.flatIndex);
+	}
+	
+	/// <summary>
+	/// Returns true if a piece is located at given index
+	/// </summary>
+	public bool SafeContainsPieceAtSquare(int squareIndex) {
+		if (squareIndex >= 0 && squareIndex < 64) {
+			return (board & (1UL << squareIndex)) != 0;
+		}
+		return false;
+	}
+
 
 	/// <summary>
 	/// Removes all bits from this board which are not 1 in the mask

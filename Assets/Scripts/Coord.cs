@@ -44,6 +44,18 @@ public struct Coord {
 		}
 	}
 
+	public static Coord operator +(Coord a, Coord b) {
+		return new Coord(a.x + b.x, a.y + b.y);
+	}
+
+	public static bool operator ==(Coord a, Coord b) {
+		return (a.x == b.x && a.y == b.y);
+	}
+
+	public static bool operator !=(Coord a, Coord b) {
+		return !(a == b);
+	}
+
 	// corners:
 	public static Coord bottomLeft { 
 		get {

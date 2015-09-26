@@ -1,4 +1,4 @@
-﻿
+
 public struct Position {
 
 	public BitBoard pawnsW;
@@ -38,7 +38,7 @@ public struct Position {
 
 		// put queen on board if promotion
 		if (move.isPawnPromotion) {
-			if (move.whitesMove) {
+			if (move.isWhiteMove) {
 				queensW.SetSquare(move.to);
 				pawnsW.SetSquare(move.to,false);
 			}
@@ -58,7 +58,7 @@ public struct Position {
 
 		// Castles
 		if (move.isCastles) {
-			if (move.whitesMove) {
+			if (move.isWhiteMove) {
 				rooksW.SetSquare(move.rookFrom,false);
 				rooksW.SetSquare(move.rookTo);
 				allPiecesW.SetSquare(move.rookFrom,false);
@@ -181,6 +181,34 @@ public struct Position {
 
 		gameState = new GameState (whiteKingside, blackKingside, whiteQueenside, blackQueenside, enPassantFile, whiteToMove);
 
+	}
+
+	public BitBoard Rooks(bool white) {
+		return (white) ? rooksW : rooksB;
+	}
+
+	public BitBoard Knights(bool white) {
+		return (white) ? knightsW : knightsB;
+	}
+
+	public BitBoard Bishops(bool white) {
+		return (white) ? bishopsW : bishopsB;
+	}
+
+	public BitBoard Queens(bool white) {
+		return (white) ? queensW : queensB;
+	}
+
+	public BitBoard King(bool white) {
+		return (white) ? kingW : kingB;
+	}
+
+	public BitBoard Pawns(bool white) {
+		return (white) ? pawnsW : pawnsB;
+	}
+	
+	public BitBoard AllPieces(bool white) {
+		return (white) ? allPiecesW : allPiecesB;
 	}
 
 }
