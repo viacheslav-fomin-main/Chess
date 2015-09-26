@@ -1,4 +1,4 @@
-﻿
+﻿using System;
 /*
  * Represents a coordinate of the chessboard
  * 0,0 = a1; 7,7 = h8
@@ -44,8 +44,23 @@ public struct Coord {
 		}
 	}
 
+	public static bool Collinear(Coord a, Coord b) {
+		Coord delta = a - b;
+		return (delta.x == 0 || delta.y == 0 || delta.x == delta.y);
+	}
+
+	public static Coord Direction(Coord to, Coord from) {
+		Coord delta = to - from;
+		int maxDir = Math.Max (Math.Abs(delta.x), Math.Abs(delta.y));
+		return new Coord(delta.x/maxDir,delta.y/maxDir);
+	}
+
 	public static Coord operator +(Coord a, Coord b) {
 		return new Coord(a.x + b.x, a.y + b.y);
+	}
+
+	public static Coord operator -(Coord a, Coord b) {
+		return new Coord(a.x - b.x, a.y - b.y);
 	}
 
 	public static bool operator ==(Coord a, Coord b) {

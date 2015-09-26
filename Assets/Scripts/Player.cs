@@ -16,7 +16,7 @@ public class Player {
 	public virtual void Init(bool white) {
 		currentPosition = new Position ();
 		currentPosition.SetPositionFromFen (Definitions.startFen);
-		moveGenerator = new MoveGenerator2 ();
+		moveGenerator = new MoveGenerator3 ();
 
 		isWhite = white;
 	}

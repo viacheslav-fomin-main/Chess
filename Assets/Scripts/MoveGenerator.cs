@@ -150,6 +150,8 @@ public class MoveGenerator : IMoveGenerator {
 		}
 
 
+
+
 		return movesFound.ToArray();
 	}
 	

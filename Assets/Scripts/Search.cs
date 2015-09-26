@@ -4,7 +4,7 @@ using System;
 
 public class Search {
 
-	public static MoveGenerator2 moveGenerator;
+	public static MoveGenerator3 moveGenerator;
 
 	static int nodesSearched;
 	static int breakCount;
@@ -16,7 +16,7 @@ public class Search {
 	public Move SearchForBestMove(Position position) {
 		nodesSearched = 0;
 		breakCount = 0;
-		moveGenerator = new MoveGenerator2 ();
+		moveGenerator = new MoveGenerator3 ();
 
 		System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch ();
 		watch.Start ();
@@ -57,7 +57,7 @@ public class Search {
 
 				if (beta <= alpha) { // break
 					breakCount++;
-					break;
+					//break;
 				}
 			}
 			return value;
@@ -78,7 +78,7 @@ public class Search {
 			
 			if (beta <= alpha) { // break
 				breakCount++;
-				break;
+				//break;
 			}
 		}
 		return value;
