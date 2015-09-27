@@ -34,10 +34,7 @@ public class HumanPlayer : Player {
 		Coord fromSquare = new Coord (fromSquareAlgebraic);
 
 		// abort legality check if trying to move wrong colour piece
-		if (isWhite && !currentPosition.allPiecesW.ContainsPieceAtSquare (fromSquare)) { 
-			return;
-		}
-		if (!isWhite && !currentPosition.allPiecesB.ContainsPieceAtSquare (fromSquare)) {
+		if (!currentPosition.AllPieces(isWhite).ContainsPieceAtSquare (fromSquare)) { 
 			return;
 		}
 

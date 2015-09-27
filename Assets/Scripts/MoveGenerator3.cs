@@ -94,17 +94,19 @@ public class MoveGenerator3 : IMoveGenerator {
 		timeFull.Start ();
 
 		wildcard.Start ();
+		currentPosition = position.Clone();
 
 		for (int j = 0; j <= 1; j ++) {
 			bool white = (j==1);
-			SetArray(position.Pawns(white), pawn + ((white)?whiteCode:0)); 
-			SetArray(position.Rooks(white), rook + ((white)?whiteCode:0)); 
-			SetArray(position.Knights(white), knight + ((white)?whiteCode:0)); 
-			SetArray(position.Bishops(white), bishop + ((white)?whiteCode:0)); 
-			SetArray(position.Queens(white), queen + ((white)?whiteCode:0)); 
-			SetArray(position.King(white), king + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.Pawns(white), pawn + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.Rooks(white), rook + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.Knights(white), knight + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.Bishops(white), bishop + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.Queens(white), queen + ((white)?whiteCode:0)); 
+			SetArray(currentPosition.King(white), king + ((white)?whiteCode:0)); 
 		}
 
+		/*
 		string b = "";
 		for (int y= 0; y < 8; y ++) {
 			for (int x= 0; x < 8; x ++) {
@@ -113,7 +115,7 @@ public class MoveGenerator3 : IMoveGenerator {
 			b+="\n";
 		}
 		UnityEngine.Debug.Log (b);
-
+*/
 		/*
 		for (int x= 0; x < 8; x ++) {
 			for (int y= 0; y < 8; y ++) {
@@ -145,13 +147,13 @@ public class MoveGenerator3 : IMoveGenerator {
 		wildcard.Stop ();
 
 		legalMoves = new List<Move> ();
-		isWhite = position.gameState.whiteToMove;
-		friendlyPieces = position.AllPieces (isWhite);
-		hostilePieces = position.AllPieces (!isWhite);
+		isWhite = currentPosition.gameState.whiteToMove;
+		friendlyPieces = currentPosition.AllPieces (isWhite);
+		hostilePieces = currentPosition.AllPieces (!isWhite);
 		allPieces = BitBoard.Combination (friendlyPieces, hostilePieces);
-		currentPosition = position;
 
-		checkInfo = GetCheckInfo (position); // Generate info relating to checks (pins etc)
+
+		checkInfo = GetCheckInfo (currentPosition); // Generate info relating to checks (pins etc)
 		GenerateLegalMovesForSquare (Definitions.PieceName.King, checkInfo.kingSquare);
 
 		if (!checkInfo.inDoubleCheck) { // no pieces besides king can move when in double check
@@ -562,8 +564,8 @@ public class MoveGenerator3 : IMoveGenerator {
 		BitBoard hostileControlledSquares = new BitBoard ();
 		
 		// boards containing positions of all pieces
-		BitBoard[] whitePieceBoards = new BitBoard[]{position.pawnsW, position.rooksW, position.knightsW, position.bishopsW, position.queensW, position.kingW};
-		BitBoard[] blackPieceBoards = new BitBoard[]{position.pawnsB, position.rooksB, position.knightsB, position.bishopsB, position.queensB, position.kingB};
+		BitBoard[] whitePieceBoards = new BitBoard[]{position.Pawns(true), position.Rooks(true), position.Knights(true), position.Bishops(true), position.Queens(true), position.King(true)};
+		BitBoard[] blackPieceBoards = new BitBoard[]{position.Pawns(false), position.Rooks(false), position.Knights(false), position.Bishops(false), position.Queens(false), position.King(false)};
 		BitBoard[] hostilePieceBoards = (isWhite) ? blackPieceBoards : whitePieceBoards;
 		
 		// order of the piece boards in the array
