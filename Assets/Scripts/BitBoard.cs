@@ -23,7 +23,7 @@ public struct BitBoard {
 
 	public void MakeMove(Coord from, Coord to) {
 		SetSquare (from, false);
-		SetSquare (to);
+		SetSquare (to, true);
 	}
 
 	/// <summary>

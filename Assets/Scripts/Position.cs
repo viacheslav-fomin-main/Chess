@@ -20,6 +20,8 @@ public struct Position {
 	public BitBoard kingB;
 	public BitBoard allPiecesB;
 
+	BitBoard[] whiteBoards;
+	BitBoard[] blackBoards;
 
 	static Definitions.PieceName[] boardOrder = new Definitions.PieceName[]{
 		Definitions.PieceName.Pawn,
@@ -38,9 +40,10 @@ public struct Position {
 		}
 		sw.Start ();
 
+		
 		int pieceCode = move.myPiece & 7;
 		int captureCode = move.capturePiece & 7;
-
+		
 		if (move.isWhiteMove) { // white move
 			
 			switch (pieceCode) {
@@ -64,6 +67,7 @@ public struct Position {
 				break;
 			}
 			allPiecesW.MakeMove (move.from, move.to);
+
 			if (move.isCapture) { // white captures black
 				allPiecesB.SetSquare(move.to,false);
 				switch (captureCode) {
@@ -108,7 +112,7 @@ public struct Position {
 				kingB.MakeMove (move.from, move.to);
 				break;
 			}
-			allPiecesW.MakeMove (move.from, move.to);
+			allPiecesB.MakeMove (move.from, move.to);
 			if (move.isCapture) { // black captures white
 				allPiecesW.SetSquare(move.to,false);
 				switch (captureCode) {
@@ -133,7 +137,6 @@ public struct Position {
 				}
 			}
 		}
-	
 		// put queen on board if promotion
 		if (move.isPawnPromotion) {
 			if (move.isWhiteMove) {
@@ -145,7 +148,7 @@ public struct Position {
 				pawnsB.SetSquare(move.to,false);
 			}
 		}
-
+		
 		// remove captured pawn if en passant
 		if (move.isEnPassantCapture) {
 			if (move.isWhiteMove) {
@@ -157,7 +160,7 @@ public struct Position {
 				allPiecesW.SetSquare(move.enPassantPawnLocation,false);
 			}
 		}
-
+		
 		// Castles
 		if (move.isCastles) {
 			if (move.isWhiteMove) {
