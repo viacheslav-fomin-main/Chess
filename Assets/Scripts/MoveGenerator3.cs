@@ -33,8 +33,10 @@ public class MoveGenerator3 : IMoveGenerator {
 		new Coord (-1, 1),
 		new Coord (-1, -1)
 	};
+
+	//Definitions.PieceName[,] boardArray;
 	
-	
+
 	CheckInfo checkInfo;
 	bool isWhite;
 
@@ -44,10 +46,104 @@ public class MoveGenerator3 : IMoveGenerator {
 	BitBoard allPieces;
 	
 	List<Move> legalMoves;
-	
-	public Move[] GetAllLegalMoves(Position position) {
+
+	const int empty = 0;
+	const int pawn = 1;
+	const int rook = 2;
+	const int knight = 3;
+	const int bishop = 4;
+	const int queen = 5;
+	const int king = 6;
+	const int whiteCode = 8; // real value = 8
+
+	int[,] boardArray = new int[8,8];
+
+	public static string Convert(int code) {
+		bool pieceW = ((code&8) != 0);
+//		UnityEngine.Debug.Log (pieceW + "  " + code);
+		int pieceCode = code & 7;
+
+		string pN = "0";
+		switch (pieceCode) {
+		case 1:
+			pN = "p";
+			break;
+		case 2:
+			pN = "r";
+			break;
+		case 3:
+			pN = "n";
+			break;
+		case 4:
+			pN = "b";
+			break;
+		case 5:
+			pN = "q";
+			break;
+		case 6:
+			pN = "k";
+			break;
+		}
+		if (pieceW) {
+			pN = pN.ToUpper();
+		}
+		return pN;
+	}
+
+	public Move[] GetAllLegalMoves(Position position) {                                      
 		timeFull.Start ();
-		
+
+		wildcard.Start ();
+
+		for (int j = 0; j <= 1; j ++) {
+			bool white = (j==1);
+			SetArray(position.Pawns(white), pawn + ((white)?whiteCode:0)); 
+			SetArray(position.Rooks(white), rook + ((white)?whiteCode:0)); 
+			SetArray(position.Knights(white), knight + ((white)?whiteCode:0)); 
+			SetArray(position.Bishops(white), bishop + ((white)?whiteCode:0)); 
+			SetArray(position.Queens(white), queen + ((white)?whiteCode:0)); 
+			SetArray(position.King(white), king + ((white)?whiteCode:0)); 
+		}
+
+		string b = "";
+		for (int y= 0; y < 8; y ++) {
+			for (int x= 0; x < 8; x ++) {
+				b += Convert(boardArray[x,y]);
+			}
+			b+="\n";
+		}
+		UnityEngine.Debug.Log (b);
+
+		/*
+		for (int x= 0; x < 8; x ++) {
+			for (int y= 0; y < 8; y ++) {
+				Coord c= new Coord(x,y);
+				for (int j = 0; j <= 1; j ++) {
+					bool white = (j==0);
+					if (position.Pawns(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = pawn + ((isWhite)?whiteCode:0);
+					}
+					if (position.Rooks(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = rook + ((isWhite)?whiteCode:0);
+					}
+					if (position.Knights(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = knight + ((isWhite)?whiteCode:0);
+					}
+					if (position.Bishops(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = bishop + ((isWhite)?whiteCode:0);
+					}
+					if (position.Queens(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = queen + ((isWhite)?whiteCode:0);
+					}
+					if (position.King(white).ContainsPieceAtSquare(c)) {
+						boardArray[x,y] = king + ((isWhite)?whiteCode:0);
+					}
+				}
+			}
+		}
+		*/
+		wildcard.Stop ();
+
 		legalMoves = new List<Move> ();
 		isWhite = position.gameState.whiteToMove;
 		friendlyPieces = position.AllPieces (isWhite);
@@ -75,7 +171,15 @@ public class MoveGenerator3 : IMoveGenerator {
 		return legalMoves.ToArray();
 	}
 
-	public void GetAllMovesFromBoard(BitBoard board, Definitions.PieceName piece) {
+	void SetArray(BitBoard board, int code) {
+		int[] indices = board.GetActiveIndices();
+		for (int i = 0; i < indices.Length; i ++) {
+			Coord c =new Coord(indices[i]);
+			boardArray[c.x,c.y] = code;
+		}
+	}
+
+	void GetAllMovesFromBoard(BitBoard board, Definitions.PieceName piece) {
 		int[] indices = board.GetActiveIndices();
 		for (int i = 0; i < indices.Length; i ++) {
 			GenerateLegalMovesForSquare(piece,new Coord(indices[i]));
@@ -312,25 +416,30 @@ public class MoveGenerator3 : IMoveGenerator {
 	/// Also checks if any rooks have been moved/captured and updates castling rights accordingly
 	/// Also sets move colour
 	bool TryCreateMove(out Move move, Coord from, Coord to, GameState gameState, Definitions.PieceName pieceName) {
-		wildcard.Start ();
+	
 		move = null;
 		if (from != checkInfo.kingSquare) { // if not king piece
 			
 			if (Coord.Collinear(from,checkInfo.kingSquare)) { // is on line from king
-				wildcard.Stop();
 				Coord dirFromKing = Coord.Direction(from, checkInfo.kingSquare);
-				int lineDirIndex= Array.IndexOf(lineDirections,dirFromKing);
-				
+
+
+				int lineDirIndex = 0;
+				for (int i = 0; i < 8; i ++) {
+					if (lineDirections[i] == dirFromKing) {
+						lineDirIndex = i;
+						break;
+					}
+				}
+				//lineDirDictionary[dirFromKing] += 0;
 				if (checkInfo.pinBoards[lineDirIndex].ContainsPieceAtSquare(from)) { // if piece is pinned
 					if (Coord.Collinear(to,checkInfo.kingSquare)) {
 						Coord newDirFromKing = Coord.Direction(to, checkInfo.kingSquare);
 						if (newDirFromKing != dirFromKing) { // pinned, but no longer on same line = illegal
-							wildcard.Stop();
 							return false;
 						}
 					}
 					else {
-						wildcard.Stop();
 						return false;
 					}
 				}
@@ -338,7 +447,6 @@ public class MoveGenerator3 : IMoveGenerator {
 			
 			if (checkInfo.inCheck) { // must block check
 				if (!checkInfo.checkBlockBoard.ContainsPieceAtSquare(to)) {
-					wildcard.Stop();
 					return false;
 				}
 			}
@@ -373,7 +481,14 @@ public class MoveGenerator3 : IMoveGenerator {
 		move = new Move (from, to, gameState);
 		move.isWhiteMove = isWhite;
 		move.pieceName = pieceName;
-		wildcard.Stop();
+
+		move.pieceType = boardArray [from.x, from.y];
+		int captureVal = boardArray [to.x, to.y];
+		if (captureVal != 0) {
+			move.isCapture = true;
+			move.capturePiece = captureVal;
+		}
+
 		return true;
 	}
 	

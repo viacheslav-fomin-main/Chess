@@ -15,8 +15,9 @@ public struct BitBoard {
 		board = _board;
 	}
 
-	public void MakeMove(Move move) {
+	public void MakeMove(Move move, bool makingMove = false) {
 		bool isMovingPiece = ContainsPieceAtSquare (move.from);
+
 		SetSquare (move.to, isMovingPiece);
 		SetSquare (move.from, false);
 	}

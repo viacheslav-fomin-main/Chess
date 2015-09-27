@@ -40,6 +40,32 @@ public struct Position {
 		}
 		sw.Start ();
 
+		UnityEngine.Debug.Log ("MOVE: " + MoveGenerator3.Convert(move.pieceType) +"  Capture: " + move.capturePiece);
+
+		BitBoard moveBoard = GetBoard (move.pieceType);
+		moveBoard.SetSquare (move.from, false);
+		moveBoard.SetSquare (move.to);
+
+		if (move.isCapture) {
+			BitBoard captureBoard = GetBoard(move.capturePiece);
+			captureBoard.SetSquare(move.to,false);
+		}
+
+		if (move.isWhiteMove) {
+			allPiecesW.SetSquare (move.from, false);
+			allPiecesW.SetSquare (move.to);
+			if (move.isCapture) {
+				allPiecesB.SetSquare (move.to, false);
+			}
+		} else {
+			allPiecesB.SetSquare (move.from, false);
+			allPiecesB.SetSquare (move.to);
+			if (move.isCapture) {
+				allPiecesW.SetSquare (move.to, false);
+			}
+		}
+
+		/*
 		pawnsW.MakeMove(move);
 		rooksW.MakeMove(move);
 		knightsW.MakeMove(move);
@@ -55,7 +81,7 @@ public struct Position {
 		queensB.MakeMove(move);
 		kingB.MakeMove(move);
 		allPiecesB.MakeMove(move);
-
+*/
 
 		// put queen on board if promotion
 		if (move.isPawnPromotion) {
@@ -204,6 +230,34 @@ public struct Position {
 
 		gameState = new GameState (whiteKingside, blackKingside, whiteQueenside, blackQueenside, enPassantFile, whiteToMove);
 
+	}
+
+	BitBoard GetBoard(int code) {
+		bool white = ((code&8) != 0);
+		int pieceCode = code & 7;
+
+		switch (pieceCode) {
+		case 1:
+			return Pawns(white);
+			break;
+		case 2:
+			return Rooks(white);
+			break;
+		case 3:
+			return Knights(white);
+			break;
+		case 4:
+			return Bishops(white);
+			break;
+		case 5:
+			return Queens(white);
+			break;
+		case 6:
+			return King(white);
+			break;
+		}
+		UnityEngine.Debug.Log ("Failed to find board. Code: " + code + "  Piece code: " + pieceCode);
+		return allPiecesB;
 	}
 
 	public BitBoard Rooks(bool white) {
