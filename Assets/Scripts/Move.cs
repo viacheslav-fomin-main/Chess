@@ -18,10 +18,8 @@ public class Move {
 	public Coord rookTo;
 
 	public bool isCapture;
+	public int myPiece;
 	public int capturePiece;
-	public int pieceType;
-
-	public Definitions.PieceName pieceName;
 
 	// Defines the game state following this move (castling rights, en passant square etc)
 	public GameState gameStateAfterMove;

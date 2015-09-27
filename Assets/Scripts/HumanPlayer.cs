@@ -8,7 +8,7 @@ public class HumanPlayer : Player {
 		base.Init (white);
 
 		if (white) {
-			MoveGenerator3 move2 = new MoveGenerator3();
+			MoveGenerator2 move2 = new MoveGenerator2();
 			Move[] moves = move2.GetAllLegalMoves(currentPosition);
 			for (int i = 0; i < moves.Length; i ++) {
 				//UnityEngine.Debug.Log(moves[i].algebraicMove);
@@ -34,7 +34,10 @@ public class HumanPlayer : Player {
 		Coord fromSquare = new Coord (fromSquareAlgebraic);
 
 		// abort legality check if trying to move wrong colour piece
-		if (!currentPosition.AllPieces(isWhite).ContainsPieceAtSquare (fromSquare)) { 
+		if (isWhite && !currentPosition.allPiecesW.ContainsPieceAtSquare (fromSquare)) { 
+			return;
+		}
+		if (!isWhite && !currentPosition.allPiecesB.ContainsPieceAtSquare (fromSquare)) {
 			return;
 		}
 

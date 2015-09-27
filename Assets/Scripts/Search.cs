@@ -22,7 +22,7 @@ public class Search {
 		watch.Start ();
 
 		SearchNode origin = new SearchNode (position);
-		searchDepth = 1;
+		searchDepth = 3;
 		bool isMaximising = position.gameState.whiteToMove;
 		bestScoreSoFar = (isMaximising) ? int.MinValue : int.MaxValue;
 		AlphaBetaSearch (origin, searchDepth, int.MinValue, int.MaxValue, position.gameState.whiteToMove);
@@ -133,10 +133,10 @@ public class Search {
 			//UnityEngine.Debug.Log ("Eval: " + eval);
 			int eval = 0;
 			for (int i = 0; i < 64; i ++) {
-				if (currentPosition.AllPieces(false).ContainsPieceAtSquare(i)) {
+				if (currentPosition.allPiecesB.ContainsPieceAtSquare(i)) {
 					eval -= new Coord(64-i).y;
 				}
-				if (currentPosition.AllPieces(true).ContainsPieceAtSquare(i)) {
+				if (currentPosition.allPiecesW.ContainsPieceAtSquare(i)) {
 					eval += new Coord(63-i).y+1;
 				}
 			}

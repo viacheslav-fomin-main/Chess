@@ -7,7 +7,7 @@ using System.Collections.Generic;
  * The least significant bit represents a1, the most, h8
  */
 
-public class BitBoard {
+public struct BitBoard {
 
 	public ulong board;
 
@@ -15,19 +15,15 @@ public class BitBoard {
 		board = _board;
 	}
 
-	public BitBoard(BitBoard bitboard) {
-		board = bitboard.board;
-	}
-
-	public BitBoard(){
-
-	}
-
-	public void MakeMove(Move move, bool makingMove = false) {
+	public void MakeMove(Move move) {
 		bool isMovingPiece = ContainsPieceAtSquare (move.from);
-
 		SetSquare (move.to, isMovingPiece);
 		SetSquare (move.from, false);
+	}
+
+	public void MakeMove(Coord from, Coord to) {
+		SetSquare (from, false);
+		SetSquare (to);
 	}
 
 	/// <summary>
