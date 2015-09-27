@@ -45,8 +45,7 @@ public struct Coord {
 	}
 
 	public static bool Collinear(Coord a, Coord b) {
-		Coord delta = a - b;
-		return (delta.x == 0 || delta.y == 0 || delta.x == delta.y);
+		return (a.x == b.x || a.y == b.y || Math.Abs(a.x-b.x) == Math.Abs(a.y - b.y));
 	}
 
 	public static Coord Direction(Coord to, Coord from) {

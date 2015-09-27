@@ -317,6 +317,7 @@ public class MoveGenerator3 : IMoveGenerator {
 		if (from != checkInfo.kingSquare) { // if not king piece
 			
 			if (Coord.Collinear(from,checkInfo.kingSquare)) { // is on line from king
+				wildcard.Stop();
 				Coord dirFromKing = Coord.Direction(from, checkInfo.kingSquare);
 				int lineDirIndex= Array.IndexOf(lineDirections,dirFromKing);
 				
@@ -342,7 +343,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				}
 			}
 		}
-		
+
 		
 		
 		// remove castling rights if piece moves to/from rook square
@@ -367,7 +368,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				gameState.castleKingsideB = false;
 			}
 		}
-		
+	
 		// set move colour
 		move = new Move (from, to, gameState);
 		move.isWhiteMove = isWhite;
