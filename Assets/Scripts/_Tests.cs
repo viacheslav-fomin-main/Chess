@@ -6,8 +6,16 @@ public class _Tests : MonoBehaviour {
 	
 
 	void Start () {
+	/*
+		Position p = new Position ();
+		p.SetPositionFromFen (Definitions.startFen);
+		int[] j =  p.AllPieces(false).GetIndices();
+		print ("hamming: " +p.AllPieces (false).ActiveBitCount () + "  " + p.AllPieces(false).board);
+		for (int i =0; i < j.Length; i ++) {
+			print ("S: " + j[i]);
+		}
 
-
+*/
 		/*
 		Position p = new Position ();
 		p.SetPositionFromFen (Definitions.startFen);

@@ -29,7 +29,7 @@ public class Search {
 
 		watch.Stop ();
 		UnityEngine.Debug.Log (nodesSearched + " nodes searched in " + watch.ElapsedMilliseconds + " ms; breakcount: " + breakCount);
-
+		UnityEngine.Debug.Log ("Pos move time: " + Position.sw.ElapsedMilliseconds + " ms");
 		moveGenerator.PrintTimes ();
 		return bestMoveSoFar;
 	}

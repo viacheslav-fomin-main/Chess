@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 
 /*
  * The board is represented as a 64 bit integer.
@@ -30,6 +31,16 @@ public struct BitBoard {
 			board &= ~(1UL << square.flatIndex);
 		}
 	}
+
+	/// <summary>
+	/// Sets whether or not a piece is located at given coordinate
+	/// </summary>
+	public void SetSquares(List<Coord> squares, bool containsPiece = true) {
+		for (int i =0; i < squares.Count; i ++) {
+			SetSquare(squares[i],containsPiece);
+		}
+	}
+
 	/// <summary>
 	/// IF the given coordinate exists on the board, sets whether or not a piece is located at given coordinate 
 	/// </summary>
@@ -37,6 +48,32 @@ public struct BitBoard {
 		if (square.inBoard) {
 			SetSquare(square, containsPiece);
 		}
+	}
+
+
+	public int[] GetActiveIndices() {
+		ulong tempBoard = board;
+
+		int[] bitIndices = new int[ActiveBitCount()];
+		int i = 0;
+		for (int shiftIndex = 0; shiftIndex < 64; shiftIndex ++) {
+			if ((board & 1) == 1) {
+				bitIndices[i] = shiftIndex;
+				i++;
+			}
+			if (i == bitIndices.Length) {
+				break;
+			}
+			board >>= 1;
+		}
+		return bitIndices;
+	}
+
+	public int ActiveBitCount() { // hamming weights
+		ulong i = board;
+		i = i - ((i >> 1) & 0x5555555555555555UL);
+		i = (i & 0x3333333333333333UL) + ((i >> 2) & 0x3333333333333333UL);
+		return (int)(unchecked(((i + (i >> 4)) & 0xF0F0F0F0F0F0F0FUL) * 0x101010101010101UL) >> 56);
 	}
 
 	/// <summary>
@@ -108,6 +145,7 @@ public struct BitBoard {
 		}
 		return index;
 	}
+
 
 	/// <summary>
 	/// Prints a graphical representation of this bitboard to the console

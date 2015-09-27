@@ -1,5 +1,8 @@
+using System.Diagnostics;
 
 public struct Position {
+
+	public static Stopwatch sw;
 
 	public BitBoard pawnsW;
 	public BitBoard rooksW;
@@ -17,9 +20,26 @@ public struct Position {
 	public BitBoard kingB;
 	public BitBoard allPiecesB;
 
+	BitBoard[] whiteBoards;
+	BitBoard[] blackBoards;
+
+	static Definitions.PieceName[] boardOrder = new Definitions.PieceName[]{
+		Definitions.PieceName.Pawn,
+		Definitions.PieceName.Rook,
+		Definitions.PieceName.Knight,
+		Definitions.PieceName.Bishop,
+		Definitions.PieceName.Queen,
+		Definitions.PieceName.King
+	};
+
 	public GameState gameState;
 
 	public void MakeMove(Move move) {
+		if (sw == null) {
+			sw = new Stopwatch();
+		}
+		sw.Start ();
+
 		pawnsW.MakeMove(move);
 		rooksW.MakeMove(move);
 		knightsW.MakeMove(move);
@@ -35,6 +55,7 @@ public struct Position {
 		queensB.MakeMove(move);
 		kingB.MakeMove(move);
 		allPiecesB.MakeMove(move);
+
 
 		// put queen on board if promotion
 		if (move.isPawnPromotion) {
@@ -72,6 +93,8 @@ public struct Position {
 			}
 		}
 		gameState = move.gameStateAfterMove;
+		sw.Stop ();
+
 	}
 
 	public void SetPositionFromFen(string fen) {
