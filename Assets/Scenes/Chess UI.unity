@@ -355,6 +355,7 @@ GameObject:
   - 114: {fileID: 71712209}
   - 114: {fileID: 71712206}
   - 114: {fileID: 71712208}
+  - 114: {fileID: 71712210}
   m_Layer: 0
   m_Name: Players
   m_TagString: Untagged
@@ -394,7 +395,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 71712205}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2169ce27b83fc4caa9937acd227dccf2, type: 3}
   m_Name: 
@@ -405,13 +406,28 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 71712205}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9848576ec6317466d91fe5e5028b3268, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   whitePlayerType: 0
   blackPlayerType: 0
+--- !u!114 &71712210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 71712205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13da7eca3e64f44899725571f8e03dc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usePerft: 1
+  printMoves: 0
+  depth: 2
+  fen: r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1
 --- !u!1 &88931495
 GameObject:
   m_ObjectHideFlags: 0

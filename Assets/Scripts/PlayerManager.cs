@@ -65,5 +65,10 @@ public class PlayerManager : MonoBehaviour {
 		}
 	}
 
+	void Update() {
+		whitePlayer.Update ();
+		blackPlayer.Update ();
+	}
+
 
 }

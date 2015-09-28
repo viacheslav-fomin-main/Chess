@@ -34,6 +34,8 @@ public class Player {
 
 	}
 
+	public virtual void Update() {
+	}
 
 
 }

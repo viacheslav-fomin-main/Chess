@@ -7,13 +7,11 @@ public class HumanPlayer : Player {
 	public override void Init (bool white) {
 		base.Init (white);
 
-		if (white) {
+
 			MoveGenerator3 move2 = new MoveGenerator3();
 			Move[] moves = move2.GetAllLegalMoves(currentPosition);
-			for (int i = 0; i < moves.Length; i ++) {
-				//UnityEngine.Debug.Log(moves[i].algebraicMove);
-			}
-		}
+	
+
 
 	}
 
