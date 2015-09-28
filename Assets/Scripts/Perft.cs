@@ -11,6 +11,7 @@ public class Perft : MonoBehaviour {
 	public int depth;
 	public string fen;
 
+	public PerftErrors[] perftErrors;
 		
 	static int nodesSearched;
 	string movesFound;
@@ -82,41 +83,13 @@ public class Perft : MonoBehaviour {
 		}
 		return 0;
 	}
-		/*
-		
-	int AlphaBetaSearch(SearchNode node, int depth, int alpha, int beta, bool isWhite) {
-		Debug.Log("R3 " + node.GetChildren().Count);
-		node.Init ();
-		if (printMoves) {
-			Debug.Log("Move: " + node.move.algebraicMove);
-		}
-		//UnityEngine.Debug.Log ("searching: ");
-		if (depth == 0 || node.NoMoves()) {
-			nodesSearched ++;
-			return node.Evaluate();
-		}
-		List<SearchNode> children = node.GetChildren ();
-		int value = int.MinValue;
-		
-		if (isWhite) { // white is trying to attain the highest evaluation possible
-			
-			foreach (SearchNode child in children) {
-				value = Mathf.Max(value,AlphaBetaSearch(child, depth-1, alpha, beta, false));
-				alpha = Mathf.Max(alpha, value);
-			}
-			return value;
-		}
-		
-		// black is trying to obtain the lowest evaluation possible
-		value = int.MaxValue;
-		foreach (SearchNode child in children) {
-			value = Mathf.Min(value,AlphaBetaSearch(child, depth-1, alpha, beta, true));
-			beta = Mathf.Min(beta, value);
-		}
-		
-		return value;
+
+	[System.Serializable]
+	public class PerftErrors {
+		public string fen;
+		public int depth;
+		public int correctResult;
 	}
-	*/
 		
 	public class SearchNode {
 		
