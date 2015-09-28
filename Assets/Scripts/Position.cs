@@ -4,24 +4,24 @@ public struct Position {
 
 	public static Stopwatch sw;
 
-	public BitBoard pawnsW;
-	public BitBoard rooksW;
-	public BitBoard knightsW;
-	public BitBoard bishopsW;
-	public BitBoard queensW;
-	public BitBoard kingW;
-	public BitBoard allPiecesW;
+	public BitBoardStruct pawnsW;
+	public BitBoardStruct rooksW;
+	public BitBoardStruct knightsW;
+	public BitBoardStruct bishopsW;
+	public BitBoardStruct queensW;
+	public BitBoardStruct kingW;
+	public BitBoardStruct allPiecesW;
 
-	public BitBoard pawnsB;
-	public BitBoard rooksB;
-	public BitBoard knightsB;
-	public BitBoard bishopsB;
-	public BitBoard queensB;
-	public BitBoard kingB;
-	public BitBoard allPiecesB;
+	public BitBoardStruct pawnsB;
+	public BitBoardStruct rooksB;
+	public BitBoardStruct knightsB;
+	public BitBoardStruct bishopsB;
+	public BitBoardStruct queensB;
+	public BitBoardStruct kingB;
+	public BitBoardStruct allPiecesB;
 
-	BitBoard[] whiteBoards;
-	BitBoard[] blackBoards;
+	BitBoardStruct[] whiteBoards;
+	BitBoardStruct[] blackBoards;
 
 	static Definitions.PieceName[] boardOrder = new Definitions.PieceName[]{
 		Definitions.PieceName.Pawn,
@@ -34,15 +34,15 @@ public struct Position {
 
 	public GameState gameState;
 
-	public void MakeMove(Move move) {
+	public void MakeMove(MoveOld move) {
 		if (sw == null) {
 			sw = new Stopwatch();
 		}
 		sw.Start ();
 
 		
-		int pieceCode = move.myPiece & 7;
-		int captureCode = move.capturePiece & 7;
+		int pieceCode = move.movePieceType & 7;
+		int captureCode = move.capturePieceType & 7;
 		
 		if (move.isWhiteMove) { // white move
 			
@@ -250,8 +250,8 @@ public struct Position {
 			}
 		}
 
-		allPiecesW = BitBoard.Combination (rooksW, knightsW, bishopsW, queensW, kingW, pawnsW);
-		allPiecesB = BitBoard.Combination (rooksB, knightsB, bishopsB, queensB, kingB, pawnsB);
+		allPiecesW = BitBoardStruct.Combination (rooksW, knightsW, bishopsW, queensW, kingW, pawnsW);
+		allPiecesB = BitBoardStruct.Combination (rooksB, knightsB, bishopsB, queensB, kingB, pawnsB);
 
 		// Game state
 		string sideToMove = fenSections [1];
@@ -290,31 +290,31 @@ public struct Position {
 
 	}
 
-	public BitBoard Rooks(bool white) {
+	public BitBoardStruct Rooks(bool white) {
 		return (white) ? rooksW : rooksB;
 	}
 
-	public BitBoard Knights(bool white) {
+	public BitBoardStruct Knights(bool white) {
 		return (white) ? knightsW : knightsB;
 	}
 
-	public BitBoard Bishops(bool white) {
+	public BitBoardStruct Bishops(bool white) {
 		return (white) ? bishopsW : bishopsB;
 	}
 
-	public BitBoard Queens(bool white) {
+	public BitBoardStruct Queens(bool white) {
 		return (white) ? queensW : queensB;
 	}
 
-	public BitBoard King(bool white) {
+	public BitBoardStruct King(bool white) {
 		return (white) ? kingW : kingB;
 	}
 
-	public BitBoard Pawns(bool white) {
+	public BitBoardStruct Pawns(bool white) {
 		return (white) ? pawnsW : pawnsB;
 	}
 	
-	public BitBoard AllPieces(bool white) {
+	public BitBoardStruct AllPieces(bool white) {
 		return (white) ? allPiecesW : allPiecesB;
 	}
 

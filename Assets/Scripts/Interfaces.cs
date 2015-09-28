@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 
 public interface IMoveGenerator {
-	Move[] GetAllLegalMoves(Position position);
+	MoveOld[] GetAllLegalMoves(Position position);
 
 	void PrintTimes();
 }
 
 public interface ISearch {
-	event Action<Move> OnNewMoveFound;
+	event Action<MoveOld> OnNewMoveFound;
 	//event Action TestEvent;
 	void StartSearch(Position position);
 	void Update();

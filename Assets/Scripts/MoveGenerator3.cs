@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections;
 using System;
 using System.Diagnostics;
@@ -47,13 +47,13 @@ public class MoveGenerator3 : IMoveGenerator {
 	bool isWhite;
 
 	Position currentPosition;
-	BitBoard friendlyPieces;
-	BitBoard hostilePieces;
-	BitBoard allPieces;
+	BitBoardStruct friendlyPieces;
+	BitBoardStruct hostilePieces;
+	BitBoardStruct allPieces;
 	
-	List<Move> legalMoves;
+	List<MoveOld> legalMoves;
 	
-	public Move[] GetAllLegalMoves(Position position) {
+	public MoveOld[] GetAllLegalMoves(Position position) {
 		timeFull.Start ();
 
 		for (int j = 0; j <= 1; j ++) {
@@ -66,11 +66,11 @@ public class MoveGenerator3 : IMoveGenerator {
 			SetArray(position.King(white), king + ((white)?whiteCode:0)); 
 		}
 		
-		legalMoves = new List<Move> ();
+		legalMoves = new List<MoveOld> ();
 		isWhite = position.gameState.whiteToMove;
 		friendlyPieces = position.AllPieces (isWhite);
 		hostilePieces = position.AllPieces (!isWhite);
-		allPieces = BitBoard.Combination (friendlyPieces, hostilePieces);
+		allPieces = BitBoardStruct.Combination (friendlyPieces, hostilePieces);
 		currentPosition = position;
 
 		checkInfo = GetCheckInfo (position); // Generate info relating to checks (pins etc)
@@ -93,7 +93,7 @@ public class MoveGenerator3 : IMoveGenerator {
 		return legalMoves.ToArray();
 	}
 
-	public void GetAllMovesFromBoard(BitBoard board, Definitions.PieceName piece) {
+	public void GetAllMovesFromBoard(BitBoardStruct board, Definitions.PieceName piece) {
 		int[] indices = board.GetActiveIndices();
 		for (int i = 0; i < indices.Length; i ++) {
 			GenerateLegalMovesForSquare(piece,new Coord(indices[i]));
@@ -112,7 +112,7 @@ public class MoveGenerator3 : IMoveGenerator {
 	}
 	
 	
-	void SetArray(BitBoard board, int code) {
+	void SetArray(BitBoardStruct board, int code) {
 		int[] indices = board.GetActiveIndices();
 		for (int i = 0; i < indices.Length; i ++) {
 			Coord c =new Coord(indices[i]);
@@ -130,7 +130,7 @@ public class MoveGenerator3 : IMoveGenerator {
 		// King movement
 		if (piece == Definitions.PieceName.King) {
 
-			BitBoard kingObstructionBoard = BitBoard.Combination(friendlyPieces, checkInfo.hostileControlledSquares); // obstruction board containing friendly pieces and squares controlled by the enemy
+			BitBoardStruct kingObstructionBoard = BitBoardStruct.Combination(friendlyPieces, checkInfo.hostileControlledSquares); // obstruction board containing friendly pieces and squares controlled by the enemy
 			for (int i =0; i < lineDirections.Length; i ++) {
 				Coord moveSquare = lineDirections[i] + origin;
 				
@@ -146,7 +146,7 @@ public class MoveGenerator3 : IMoveGenerator {
 							newGameState.castleKingsideB = false;
 							newGameState.castleQueensideB = false;
 						}
-						Move newMove;
+						MoveOld newMove;
 						if (TryCreateMove(out newMove, origin,lineDirections[i] + origin, newGameState, piece)) {
 							legalMoves.Add(newMove);
 						}
@@ -157,7 +157,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				
 			// castling
 			if ((isWhite && (nextGameState.castleKingsideW || nextGameState.castleQueensideW)) || (!isWhite && (nextGameState.castleKingsideB || nextGameState.castleQueensideB))) { // king still has the right to castle on at least one side
-				BitBoard castlingObstructionBoard = BitBoard.Combination(kingObstructionBoard, hostilePieces); // add hostile pieces to obstruction board since the king cannot castle through them
+				BitBoardStruct castlingObstructionBoard = BitBoardStruct.Combination(kingObstructionBoard, hostilePieces); // add hostile pieces to obstruction board since the king cannot castle through them
 				GameState castleGameState = nextGameState;
 				string kingRankName = "";
 				if (isWhite) { // castling white
@@ -173,7 +173,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				
 				if ((isWhite && nextGameState.castleKingsideW) || (!isWhite && nextGameState.castleKingsideB)) { // king still has right to castle kingside
 					if (!castlingObstructionBoard.ContainsPieceAtSquare(new Coord("f" + kingRankName)) && !castlingObstructionBoard.ContainsPieceAtSquare(new Coord("g" + kingRankName))) { // no obstructions/checks on f and g files
-						Move castleMove;
+						MoveOld castleMove;
 						if (TryCreateMove(out castleMove, origin, new Coord("g" + kingRankName), castleGameState, piece)) {
 							castleMove.isCastles = true;
 							castleMove.rookFrom = new Coord("h" + kingRankName);
@@ -186,7 +186,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				if ((isWhite && nextGameState.castleQueensideW) || (!isWhite && nextGameState.castleQueensideB)) { // king still has right to castle queenside
 					if (!castlingObstructionBoard.ContainsPieceAtSquare(new Coord("d" + kingRankName)) && !castlingObstructionBoard.ContainsPieceAtSquare(new Coord("c" + kingRankName))) { // no obstructions/checks on d and c files
 						if (!kingObstructionBoard.ContainsPieceAtSquare(new Coord("b" + kingRankName))) { // no piece on b file
-							Move castleMove;
+							MoveOld castleMove;
 							if (TryCreateMove(out castleMove, origin, new Coord("c" + kingRankName), castleGameState, piece)) {
 								castleMove.isCastles = true;
 								castleMove.rookFrom = new Coord("a" + kingRankName);
@@ -207,7 +207,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				Coord knightMove = knightMoves[i] + origin;
 				if (knightMove.inBoard) {
 					if (!friendlyPieces.ContainsPieceAtSquare(knightMove)) {
-						Move newMove;
+						MoveOld newMove;
 						if (TryCreateMove(out newMove, origin,knightMoves[i] + origin, nextGameState, piece)) {
 							legalMoves.Add(newMove);
 						}
@@ -228,7 +228,7 @@ public class MoveGenerator3 : IMoveGenerator {
 			}
 			
 			// pawn captures:
-			BitBoard pawnCaptureMask = hostilePieces;
+			BitBoardStruct pawnCaptureMask = hostilePieces;
 			Coord epCaptureSquare = new Coord(currentPosition.gameState.enPassantFileIndex,(isWhite)?5:2); // the square the pawn will capture to
 			Coord epPawnSquare = new Coord(currentPosition.gameState.enPassantFileIndex,(isWhite)?4:3); // the square which the pawn being captured en passant actually occupies
 			bool isEpCapture;
@@ -242,7 +242,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				isEpCapture = pawnCaptureSquares[i] == epCaptureSquare;
 				if (pawnCaptureSquares[i].inBoard) {
 					if (pawnCaptureMask.ContainsPieceAtSquare(pawnCaptureSquares[i]) || isEpCapture) { // can only capture if there is enemy piece at square (or is ep square)
-						Move pawnCaptureMove;
+						MoveOld pawnCaptureMove;
 						bool enPassantCaptureIsPinned = false;
 						if (TryCreateMove(out pawnCaptureMove,origin, pawnCaptureSquares[i], nextGameState, piece)) {
 							if (isEpCapture) {
@@ -266,7 +266,7 @@ public class MoveGenerator3 : IMoveGenerator {
 			
 			// pawn movement
 			if (!allPieces.ContainsPieceAtSquare (advanceSquare)) { // pawn is blocked from advancing by any piece
-				Move pawnMove;
+				MoveOld pawnMove;
 				if (TryCreateMove(out pawnMove, origin,advanceSquare, nextGameState, piece)) {
 					pawnMove.isPawnPromotion = promotion;
 					legalMoves.Add(pawnMove);
@@ -279,7 +279,7 @@ public class MoveGenerator3 : IMoveGenerator {
 						GameState newGameState = nextGameState;
 						newGameState.enPassantFileIndex = origin.x;
 						
-						Move doubleAdvanceMove;
+						MoveOld doubleAdvanceMove;
 						if (TryCreateMove(out doubleAdvanceMove, origin, doubleAdvanceSquare, newGameState, piece)) {
 							legalMoves.Add(doubleAdvanceMove);
 						}
@@ -338,7 +338,7 @@ public class MoveGenerator3 : IMoveGenerator {
 								
 								
 								if (canAddMove) {
-									Move newMove;
+									MoveOld newMove;
 									if (TryCreateMove(out newMove,origin,lineCoord, nextGameState, piece)) {
 										legalMoves.Add(newMove);
 									}
@@ -364,7 +364,7 @@ public class MoveGenerator3 : IMoveGenerator {
 	/// Creates a move with given information
 	/// Also checks if any rooks have been moved/captured and updates castling rights accordingly
 	/// Also sets move colour
-	bool TryCreateMove(out Move move, Coord from, Coord to, GameState gameState, Definitions.PieceName pieceName) {
+	bool TryCreateMove(out MoveOld move, Coord from, Coord to, GameState gameState, Definitions.PieceName pieceName) {
 		move = null;
 		if (from != checkInfo.kingSquare) { // if not king piece
 			
@@ -424,14 +424,14 @@ public class MoveGenerator3 : IMoveGenerator {
 		}
 		
 		// set move colour
-		move = new Move (from, to, gameState);
+		move = new MoveOld (from, to, gameState);
 		move.isWhiteMove = isWhite;
 
-		move.myPiece = boardArray [from.x, from.y];
+		move.movePieceType = boardArray [from.x, from.y];
 		int captureVal = boardArray [to.x, to.y];
 		if (captureVal != 0) {
 			move.isCapture = true;
-			move.capturePiece = captureVal;
+			move.capturePieceType = captureVal;
 		}
 
 		
@@ -443,17 +443,17 @@ public class MoveGenerator3 : IMoveGenerator {
 	bool KingInCheck(Position position) {
 
 
-		int friendlyKingSquareIndex = BitBoard.BitIndex (position.King(isWhite).board); // index of the friendly king
+		int friendlyKingSquareIndex = BitBoardStruct.BitIndex (position.King(isWhite).board); // index of the friendly king
 		Coord friendlyKingPosition = new Coord (friendlyKingSquareIndex);
 	
-		BitBoard hostileControlledSquares = new BitBoard ();
-		BitBoard allPiecesSansFriendlyKing = BitBoard.Combination(position.allPiecesB,position.allPiecesW);
+		BitBoardStruct hostileControlledSquares = new BitBoardStruct ();
+		BitBoardStruct allPiecesSansFriendlyKing = BitBoardStruct.Combination(position.allPiecesB,position.allPiecesW);
 		allPiecesSansFriendlyKing.SetSquare(friendlyKingPosition,false); // remove the friendly king from board so that hostile attacks are not blocked by it (king cannot be used to block a check)
 
 		// boards containing positions of all pieces
-		BitBoard[] whitePieceBoards = new BitBoard[]{position.pawnsW, position.rooksW, position.knightsW, position.bishopsW, position.queensW, position.kingW};
-		BitBoard[] blackPieceBoards = new BitBoard[]{position.pawnsB, position.rooksB, position.knightsB, position.bishopsB, position.queensB, position.kingB};
-		BitBoard[] hostilePieceBoards = (isWhite) ? blackPieceBoards : whitePieceBoards;
+		BitBoardStruct[] whitePieceBoards = new BitBoardStruct[]{position.pawnsW, position.rooksW, position.knightsW, position.bishopsW, position.queensW, position.kingW};
+		BitBoardStruct[] blackPieceBoards = new BitBoardStruct[]{position.pawnsB, position.rooksB, position.knightsB, position.bishopsB, position.queensB, position.kingB};
+		BitBoardStruct[] hostilePieceBoards = (isWhite) ? blackPieceBoards : whitePieceBoards;
 		
 		// order of the piece boards in the array
 		Definitions.PieceName[] pieceBoardOrder = new Definitions.PieceName[] {
@@ -465,10 +465,10 @@ public class MoveGenerator3 : IMoveGenerator {
 			Definitions.PieceName.King
 		};
 		
-		BitBoard hostileOrthogonalPieces = BitBoard.Combination (hostilePieceBoards [1], hostilePieceBoards [4]); // mask of hostile rook and queen
-		BitBoard hostileDiagonalPieces = BitBoard.Combination (hostilePieceBoards [3], hostilePieceBoards [4]); // mask of hostile bishop and queen
-		BitBoard hostileKnights = hostilePieceBoards [2];
-		BitBoard hostilePawns = hostilePieceBoards [0];
+		BitBoardStruct hostileOrthogonalPieces = BitBoardStruct.Combination (hostilePieceBoards [1], hostilePieceBoards [4]); // mask of hostile rook and queen
+		BitBoardStruct hostileDiagonalPieces = BitBoardStruct.Combination (hostilePieceBoards [3], hostilePieceBoards [4]); // mask of hostile bishop and queen
+		BitBoardStruct hostileKnights = hostilePieceBoards [2];
+		BitBoardStruct hostilePawns = hostilePieceBoards [0];
 		
 		// Get attack boards for each hostile piece and combine to form bitboard of all hostile-controlled squares
 		for (int pieceBoardIndex = 0; pieceBoardIndex < hostilePieceBoards.Length; pieceBoardIndex ++) {
@@ -477,7 +477,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				
 				if (isPieceOnBoard) {
 					
-					BitBoard pieceAttackBoard = HostileAttackBoard(pieceBoardOrder[pieceBoardIndex], new Coord(squareIndex), allPiecesSansFriendlyKing);
+					BitBoardStruct pieceAttackBoard = HostileAttackBoard(pieceBoardOrder[pieceBoardIndex], new Coord(squareIndex), allPiecesSansFriendlyKing);
 					
 					if (pieceAttackBoard.ContainsPieceAtSquare(friendlyKingSquareIndex)) { // incrememnt check count if attack square is same as friendly king
 						return true;
@@ -493,9 +493,9 @@ public class MoveGenerator3 : IMoveGenerator {
 	/// 'Attack move' means that the piece exerts control over that square.
 	/// For example: a white pawn on e4 attacks d5 and f5, but does NOT attack e5.
 	/// Note, however, that it 'attacks' d5 and f5 regardless of whether the square is occupied by a friendly or hostile piece (or no piece at all).
-	BitBoard HostileAttackBoard(Definitions.PieceName piece, Coord origin,BitBoard allPiecesSansFriendlyKing) {
+	BitBoardStruct HostileAttackBoard(Definitions.PieceName piece, Coord origin,BitBoardStruct allPiecesSansFriendlyKing) {
 		timeAttackMoves.Start ();
-		BitBoard attackBoard = new BitBoard ();
+		BitBoardStruct attackBoard = new BitBoardStruct ();
 		
 	
 		
@@ -579,18 +579,18 @@ public class MoveGenerator3 : IMoveGenerator {
 
 		CheckInfo checkInfo = new CheckInfo ();
 
-		int friendlyKingSquareIndex = BitBoard.BitIndex (position.King(isWhite).board); // index of the friendly king
+		int friendlyKingSquareIndex = BitBoardStruct.BitIndex (position.King(isWhite).board); // index of the friendly king
 		Coord friendlyKingPosition = new Coord (friendlyKingSquareIndex);
 
-		BitBoard allPiecesSansFriendlyKing = allPieces;
+		BitBoardStruct allPiecesSansFriendlyKing = allPieces;
 		allPiecesSansFriendlyKing.SetSquare(friendlyKingPosition,false); // remove the friendly king from board so that hostile attacks are not blocked by it (king cannot be used to block a check)
 
-		BitBoard hostileControlledSquares = new BitBoard ();
+		BitBoardStruct hostileControlledSquares = new BitBoardStruct ();
 		
 		// boards containing positions of all pieces
-		BitBoard[] whitePieceBoards = new BitBoard[]{position.pawnsW, position.rooksW, position.knightsW, position.bishopsW, position.queensW, position.kingW};
-		BitBoard[] blackPieceBoards = new BitBoard[]{position.pawnsB, position.rooksB, position.knightsB, position.bishopsB, position.queensB, position.kingB};
-		BitBoard[] hostilePieceBoards = (isWhite) ? blackPieceBoards : whitePieceBoards;
+		BitBoardStruct[] whitePieceBoards = new BitBoardStruct[]{position.pawnsW, position.rooksW, position.knightsW, position.bishopsW, position.queensW, position.kingW};
+		BitBoardStruct[] blackPieceBoards = new BitBoardStruct[]{position.pawnsB, position.rooksB, position.knightsB, position.bishopsB, position.queensB, position.kingB};
+		BitBoardStruct[] hostilePieceBoards = (isWhite) ? blackPieceBoards : whitePieceBoards;
 		
 		// order of the piece boards in the array
 		Definitions.PieceName[] pieceBoardOrder = new Definitions.PieceName[] {
@@ -602,10 +602,10 @@ public class MoveGenerator3 : IMoveGenerator {
 			Definitions.PieceName.King
 		};
 		
-		BitBoard hostileOrthogonalPieces = BitBoard.Combination (hostilePieceBoards [1], hostilePieceBoards [4]); // mask of hostile rook and queen
-		BitBoard hostileDiagonalPieces = BitBoard.Combination (hostilePieceBoards [3], hostilePieceBoards [4]); // mask of hostile bishop and queen
-		BitBoard hostileKnights = hostilePieceBoards [2];
-		BitBoard hostilePawns = hostilePieceBoards [0];
+		BitBoardStruct hostileOrthogonalPieces = BitBoardStruct.Combination (hostilePieceBoards [1], hostilePieceBoards [4]); // mask of hostile rook and queen
+		BitBoardStruct hostileDiagonalPieces = BitBoardStruct.Combination (hostilePieceBoards [3], hostilePieceBoards [4]); // mask of hostile bishop and queen
+		BitBoardStruct hostileKnights = hostilePieceBoards [2];
+		BitBoardStruct hostilePawns = hostilePieceBoards [0];
 
 		int checkCount = 0; // number of checks delivered to friendly king
 		
@@ -616,7 +616,7 @@ public class MoveGenerator3 : IMoveGenerator {
 				
 				if (isPieceOnBoard) {
 
-					BitBoard pieceAttackBoard = HostileAttackBoard(pieceBoardOrder[pieceBoardIndex], new Coord(squareIndex), allPiecesSansFriendlyKing);
+					BitBoardStruct pieceAttackBoard = HostileAttackBoard(pieceBoardOrder[pieceBoardIndex], new Coord(squareIndex), allPiecesSansFriendlyKing);
 
 					if (pieceAttackBoard.ContainsPieceAtSquare(friendlyKingSquareIndex)) { // incrememnt check count if attack square is same as friendly king
 						checkCount ++;
@@ -631,8 +631,8 @@ public class MoveGenerator3 : IMoveGenerator {
 		checkInfo.hostileControlledSquares = hostileControlledSquares;
 		checkInfo.kingSquare = friendlyKingPosition;
 
-		BitBoard checkBlockBoard = new BitBoard();
-		List<BitBoard> pinTemp = new List<BitBoard> (8);
+		BitBoardStruct checkBlockBoard = new BitBoardStruct();
+		List<BitBoardStruct> pinTemp = new List<BitBoardStruct> (8);
 
 		// Only calculate pin/check block boards if king is not in double check
 		// Reason: If in double check the king is the only piece that can move, so info is unecessary.
@@ -665,8 +665,8 @@ public class MoveGenerator3 : IMoveGenerator {
 			
 			// Sliding piece checks
 			for (int dirIndex = 0; dirIndex < lineDirections.Length; dirIndex ++) {
-				pinTemp.Add(new BitBoard());
-				BitBoard hostileLinePieceMask = (dirIndex < 4)?hostileOrthogonalPieces:hostileDiagonalPieces; // first 4 directions are orthog, next four are diag. Only check for pieces with correct movement type
+				pinTemp.Add(new BitBoardStruct());
+				BitBoardStruct hostileLinePieceMask = (dirIndex < 4)?hostileOrthogonalPieces:hostileDiagonalPieces; // first 4 directions are orthog, next four are diag. Only check for pieces with correct movement type
 
 				Coord directionFromKing = lineDirections[dirIndex];
 				List<Coord> lineCoords = new List<Coord>();
@@ -703,9 +703,9 @@ public class MoveGenerator3 : IMoveGenerator {
 				}
 			}
 
-			List<BitBoard> pinBoards = new List<BitBoard>();
+			List<BitBoardStruct> pinBoards = new List<BitBoardStruct>();
 			for (int i = 0; i < pinLines.Count; i ++) {
-				BitBoard pinLineBoard = new BitBoard();
+				BitBoardStruct pinLineBoard = new BitBoardStruct();
 				for (int j = 0; j < pinLines[i].Count; j ++) {
 					pinLineBoard.SetSquare(pinLines[i][j]);
 				}
@@ -724,11 +724,11 @@ public class MoveGenerator3 : IMoveGenerator {
 	public class CheckInfo {
 		public bool inCheck;
 		public bool inDoubleCheck; // king is checked by two piece at once
-		public BitBoard hostileControlledSquares; // squares attacked by hostile pieces
+		public BitBoardStruct hostileControlledSquares; // squares attacked by hostile pieces
 		public Coord kingSquare;
 		
-		public List<BitBoard> pinBoards; // each pin board represents the movement options of the pinned piece
-		public BitBoard checkBlockBoard; // bitboard of squares which can be moved to in order to block (or capture) the checking piece
+		public List<BitBoardStruct> pinBoards; // each pin board represents the movement options of the pinned piece
+		public BitBoardStruct checkBlockBoard; // bitboard of squares which can be moved to in order to block (or capture) the checking piece
 		
 	}
 	

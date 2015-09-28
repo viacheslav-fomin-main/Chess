@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System;
 
 public class AIPlayer : Player {
@@ -60,9 +60,9 @@ public class AIPlayer : Player {
 	}
 
 	bool foundMove;
-	Move m;
+	MoveOld m;
 
-	public void OnNewMoveFound(Move move) {
+	public void OnNewMoveFound(MoveOld move) {
 		//UnityEngine.Debug.Log ("Move recieved AI");
 		foundMove = true;
 		m = move;

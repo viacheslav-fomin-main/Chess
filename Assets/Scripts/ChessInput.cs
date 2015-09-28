@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -35,7 +35,7 @@ public class ChessInput : MonoBehaviour {
 			if (holdingPiece) {
 
 				// highlight legal moves for held piece
-				Move[] legalMoves = HumanPlayer.legalMovesInPosition;
+				MoveOld[] legalMoves = HumanPlayer.legalMovesInPosition;
 				for (int i =0; i < legalMoves.Length; i ++) {
 					if (legalMoves[i].from.algebraic == pieceHeld.algebraicCoordinate) {
 						ChessUI.instance.HighlightSquare(legalMoves[i].to.algebraic);

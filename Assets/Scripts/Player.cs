@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System;
 
 /*
@@ -22,7 +22,7 @@ public class Player {
 	}
 
 
-	protected virtual void MakeMove(Move move) {
+	protected virtual void MakeMove(MoveOld move) {
 		ChessUI.instance.MakeMove (move.algebraicMove);
 		currentPosition.MakeMove (move);
 		if (OnMove != null) {

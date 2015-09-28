@@ -24,6 +24,23 @@ public struct Coord {
 		y = Definitions.rankNames.IndexOf (algebraic [1]);
 	}
 
+	public static int CoordToIndex(Coord coord) {
+		return coord.y*8 + coord.x;
+	}
+
+	public static int CoordToIndex(int x, int y) {
+		return y*8 + x;
+	}
+
+	public static int IndexFromAlgebraic(string algebraic) {
+		return CoordToIndex (Definitions.fileNames.IndexOf (algebraic [0]), Definitions.rankNames.IndexOf (algebraic [1]));
+	}
+
+	// All below are not yet approved of: 
+	//
+	//
+	//
+
 	/// Does coord lie within dimensions of board
 	public bool inBoard {
 		get {

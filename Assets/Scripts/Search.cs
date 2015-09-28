@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Threading;
@@ -12,10 +12,10 @@ public class Search {
 
 	int searchDepth;
 	int bestScoreSoFar;
-	public volatile Move bestMoveSoFar;
+	public volatile MoveOld bestMoveSoFar;
 	public volatile bool returnReady;
 
-	public event Action<Move> OnNewMoveFound;
+	public event Action<MoveOld> OnNewMoveFound;
 
 	//Thread t;
 	//bool init;
@@ -154,21 +154,21 @@ public class Search {
 		
 		List<SearchNode> children;
 		Position currentPosition;
-		public Move move { get; private set; } // The move the got to this position
+		public MoveOld move { get; private set; } // The move the got to this position
 	
 
 		public SearchNode(Position p) {
 			currentPosition = p;
 		}
 		
-		public SearchNode(Position p, Move m) {
+		public SearchNode(Position p, MoveOld m) {
 			currentPosition = p;
 			move = m;
 		}
 
 		public void Init() {
 			Search.nodesSearched ++;
-			Move[] allMoves = moveGenerator.GetAllLegalMoves (currentPosition);
+			MoveOld[] allMoves = moveGenerator.GetAllLegalMoves (currentPosition);
 			// TODO: prune and sort moves
 			children = new List<SearchNode> ();
 			

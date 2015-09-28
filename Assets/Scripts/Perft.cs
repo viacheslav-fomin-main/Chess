@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -95,7 +95,7 @@ public class Perft : MonoBehaviour {
 		
 		List<SearchNode> children;
 		Position currentPosition;
-		public Move move { get; private set; } // The move the got to this position
+		public MoveOld move { get; private set; } // The move the got to this position
 
 		public string algebraic {
 			get {
@@ -111,13 +111,13 @@ public class Perft : MonoBehaviour {
 			currentPosition = p;
 		}
 		
-		public SearchNode(Position p, Move m) {
+		public SearchNode(Position p, MoveOld m) {
 			currentPosition = p;
 			move = m;
 		}
 		
 		public void Init() {
-			Move[] allMoves = moveGenerator.GetAllLegalMoves (currentPosition);
+			MoveOld[] allMoves = moveGenerator.GetAllLegalMoves (currentPosition);
 			// TODO: prune and sort moves
 			children = new List<SearchNode> ();
 			

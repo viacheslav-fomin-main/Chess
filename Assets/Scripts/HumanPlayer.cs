@@ -1,15 +1,15 @@
-﻿using System.Collections;
+using System.Collections;
 
 public class HumanPlayer : Player {
 
-	public static Move[] legalMovesInPosition;
+	public static MoveOld[] legalMovesInPosition;
 
 	public override void Init (bool white) {
 		base.Init (white);
 
 
 			MoveGenerator3 move2 = new MoveGenerator3();
-			Move[] moves = move2.GetAllLegalMoves(currentPosition);
+			MoveOld[] moves = move2.GetAllLegalMoves(currentPosition);
 	
 
 
@@ -18,7 +18,7 @@ public class HumanPlayer : Player {
 	/// <summary>
 	/// Make a move that is known to be legal
 	/// </summary>
-	protected override void MakeMove (Move move)
+	protected override void MakeMove (MoveOld move)
 	{
 		base.MakeMove (move);
 		legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);

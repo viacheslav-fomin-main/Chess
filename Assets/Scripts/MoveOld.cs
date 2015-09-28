@@ -3,14 +3,13 @@
  * Represents a chess move 
  */
 
-public class Move{
+public class MoveOld {
 
 	public bool isWhiteMove;
 	public bool isPawnPromotion;
 	public bool isEnPassantCapture;
 	public bool isCastles;
-	public bool isCapture;
-	
+
 	public int fromIndex;
 	public int toIndex;
 
@@ -23,15 +22,32 @@ public class Move{
 	public int promotionPieceType;
 
 
-	public Move(int _fromIndex, int _toIndex) {
-		fromIndex = _fromIndex;
-		toIndex = _toIndex;
+	public Coord from;
+	public Coord to;
+	
+
+	public Coord enPassantPawnLocation;
+	
+
+	public Coord rookFrom;
+	public Coord rookTo;
+	
+	public bool isCapture;
+
+	
+	// Defines the game state following this move (castling rights, en passant square etc)
+	public GameState gameStateAfterMove;
+	
+	public MoveOld(Coord _from, Coord _to, GameState newGameState) {
+		from = _from;
+		to = _to;
+		gameStateAfterMove = newGameState;
 	}
 	
-	public Move() {
+	public MoveOld() {
+		
 	}
-
-	/*
+	
 	public string algebraicMove {
 		get {
 			string promotionKey = "";
@@ -41,5 +57,4 @@ public class Move{
 			return from.algebraic + to.algebraic + promotionKey;
 		}
 	}
-	*/
 }
