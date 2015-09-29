@@ -1,0 +1,4 @@
+Optimizations:
+
+Move gen - store moves in array of max size (208) and return that with num moves generated to search function.
+Move class - remove entirely, moves should instead be represented by single uInt16

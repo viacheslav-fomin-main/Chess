@@ -5,12 +5,12 @@ public static class Board {
 
 	// Piece type codes:
 	// to represent colour, a 1 can be added to make the piece white.
-	const int pawnCode = 2;
-	const int rookCode = 4;
-	const int knightCode = 6;
-	const int bishopCode = 8;
-	const int queenCode = 10;
-	const int kingCode = 12;
+	public const int pawnCode = 2;
+	public const int rookCode = 4;
+	public const int knightCode = 6;
+	public const int bishopCode = 8;
+	public const int queenCode = 10;
+	public const int kingCode = 12;
 
 	// Corner indices of chessboard
 	const int a1 = 0;

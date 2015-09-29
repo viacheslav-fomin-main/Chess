@@ -39,5 +39,13 @@ public struct GameState {
 			castleQueensideB = queenside;
 		}
 	}
+
+	public bool CanCastleKingside(bool white) {
+		return (white)?castleKingsideW:castleKingsideB;
+	}
+
+	public bool CanCastleQueenside(bool white) {
+		return (white)?castleQueensideW:castleQueensideB;
+	}
 	
 }
