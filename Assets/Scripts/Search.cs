@@ -9,7 +9,7 @@ public class Search {
 
 	static int nodesSearched;
 	static int breakCount;
-
+	/*
 	int searchDepth;
 	int bestScoreSoFar;
 	public volatile MoveOld bestMoveSoFar;
@@ -208,6 +208,6 @@ public class Search {
 		
 		
 	}
-
+*/
 }
 

@@ -11,22 +11,19 @@ public class Perft : MonoBehaviour {
 	public int depth;
 	public string fen;
 
-	public PerftErrors[] perftErrors;
+//	public PerftErrors[] perftErrors;
 		
 	static int nodesSearched;
 	string movesFound;
 
-	Position position;
-
 	public static IMoveGenerator moveGenerator;
 
+	/*
 	void Start() {
 		if (usePerft) {
-			moveGenerator = new MoveGenerator3();
+			moveGenerator = new MoveGenerator();
 		
 			ChessUI.instance.SetPosition(fen);
-			position = new Position();
-			position.SetPositionFromFen(fen);
 
 			Thread t = new Thread (SearchForBestMove);
 			t.Start ();
@@ -144,5 +141,6 @@ public class Perft : MonoBehaviour {
 		
 		
 	}
+	*/
 
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 
 public static class Board {
 
@@ -12,6 +13,8 @@ public static class Board {
 	public const int queenCode = 10;
 	public const int kingCode = 12;
 
+	static int[] pieceCodeArray = new int[]{queenCode,rookCode,knightCode, bishopCode, pawnCode, kingCode}; // (this order puts pawn-promotable pieces first)
+
 	// Corner indices of chessboard
 	const int a1 = 0;
 	const int a8 = 56;
@@ -20,82 +23,25 @@ public static class Board {
 
 	/// Board array of piece codes.
 	/// Note that colour information is included in the codes.
-	public static int[,] boardArray { get; private set; }
+	public static int[] boardArray;
 
-	static Bitboard pawnsW;
-	static Bitboard rooksW;
-	static Bitboard knightsW;
-	static Bitboard bishopsW;
-	static Bitboard queensW;
-	static Bitboard kingW;
-	static Bitboard allPiecesW;
-	static Bitboard pawnsB;
-	static Bitboard rooksB;
-	static Bitboard knightsB;
-	static Bitboard bishopsB;
-	static Bitboard queensB;
-	static Bitboard kingB;
-	static Bitboard allPiecesB;
+	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 
-	static Stack<GameState> gameStateHistory = new Stack<GameState> ();
-
-	public static GameState currentGamestate {
+	public static ushort currentGamestate {
 		get {
 			return gameStateHistory.Peek ();
 		}
 	}
 
-	/// Set board array at given index to the given piece type code.
-	/// Since it is a TYPE code, it must not contain colour information (this is added automatically)
-	static void SetBoardArraySquare(int index, int pieceTypeCode, bool isWhite) {
-		int y = index / 8;
-		int x = index - y*8;
-		boardArray[x,y] = pieceTypeCode + ColourCode(isWhite);
+	public static int GetPiece(int squareIndex) {
+		return boardArray [squareIndex];
 	}
 
-	/// Clears board array at given index
-	static void ClearBoardArraySquare(int index) {
-		SetBoardArraySquare (index, 0, false);
+	public static int GetPiece(int x, int y) {
+		return boardArray[y * 8 + x];
 	}
-
-	static void MakeMoveOnBoard (int pieceType, bool white, int fromIndex, int toIndex)
-	{
-		DefineSquareOnBoard (pieceType, white, fromIndex, false);
-		DefineSquareOnBoard (pieceType, white, fromIndex, true);
-	}
-
-	/// sets or clears square on board based on set bool
-	static void DefineSquareOnBoard (int pieceType, bool white, int squareIndex, bool set)
-	{
-
-		// Automatically set all pieces board along with given piecetype's board
-		if (white) {
-			allPiecesW.DefineSquare (squareIndex, set);
-		} else {
-			allPiecesB.DefineSquare (squareIndex, set);
-		}
-
-		switch (pieceType) {
-		case pawnCode:
-			Pawns(white).DefineSquare (squareIndex, set);
-			break;
-		case rookCode:
-			Rooks(white).DefineSquare (squareIndex, set);
-			break;
-		case knightCode:
-			Knights(white).DefineSquare (squareIndex, set);
-			break;
-		case bishopCode:
-			Bishops(white).DefineSquare (squareIndex, set);
-			break;
-		case queenCode:
-			Queens(white).DefineSquare (squareIndex, set);
-			break;
-		case kingCode:
-			King(white).DefineSquare (squareIndex, set);
-			break;
-		}
-	}
+	
+	/*
 
 	/// Undo the previous move
 	public static void UnmakeMove (Move move)
@@ -103,124 +49,90 @@ public static class Board {
 		gameStateHistory.Pop (); // return to previous game state
 
 
-		MakeMoveOnBoard(move.movePieceType, move.isWhiteMove, move.toIndex, move.fromIndex); // move piece back to where it came from
 		SetBoardArraySquare(move.fromIndex, move.movePieceType, move.isWhiteMove);
 		ClearBoardArraySquare(move.toIndex);
 
 		if (move.isCapture) {
 			if (move.isEnPassantCapture) {
-				DefineSquareOnBoard(move.capturePieceType, !move.isWhiteMove, move.enPassantPawnIndex, true); // reinstate opponent's en passant captured pawn
 				SetBoardArraySquare(move.enPassantPawnIndex,pawnCode, !move.isWhiteMove);
 			}
 			else {
-				DefineSquareOnBoard(move.capturePieceType, !move.isWhiteMove, move.toIndex, true); // reinstate opponents captured piece
 				SetBoardArraySquare(move.toIndex,move.capturePieceType, !move.isWhiteMove);
 			}
 		}
 
 		if (move.isPawnPromotion) {
-			DefineSquareOnBoard(move.promotionPieceType, move.isWhiteMove, move.toIndex, false); // remove promoted piece from board
 			SetBoardArraySquare(move.fromIndex,pawnCode, move.isWhiteMove); // replace the promoted piece with pawn (board array)
 		}
 
 		if (move.isCastles) {
-			MakeMoveOnBoard(rookCode, move.isWhiteMove, move.toIndex, move.fromIndex); // move rook back to original square before castling
 			SetBoardArraySquare(move.rookFromIndex, rookCode, move.isWhiteMove);
 			ClearBoardArraySquare(move.rookToIndex);
 		}
 
 	}
+*/
 
 	/// Update all boards to reflect latest move
-	public static void MakeMove (Move move)
+	public static void MakeMove (ushort move)
 	{
-		// Update boards with new move:
-		MakeMoveOnBoard (move.movePieceType, move.isWhiteMove, move.fromIndex, move.toIndex);
-		SetBoardArraySquare(move.toIndex, move.movePieceType, move.isWhiteMove);
-		ClearBoardArraySquare(move.fromIndex);
+		ushort newGamestate = currentGamestate;
+		newGamestate ^= 1; // toggle side to move
+		newGamestate &= 65055; // clear en passant file (1111111000011111)
 
-		if (move.isCapture) { // if capture, remove opponents piece from board
-			DefineSquareOnBoard (move.capturePieceType, !move.isWhiteMove, move.toIndex, false);
-		}
+		int colourToMove = currentGamestate & 1;
+		int moveFromIndex = move & 63;
+		int moveToIndex = (move >> 6) & 63;
+		int promotionPieceIndex = (move >> 12) & 3; // 0 = queen, 1 = rook, 2 = knight, 3 = bishop
 
-		// Pawn promotion
-		if (move.isPawnPromotion) {
-			DefineSquareOnBoard (pawnCode, move.isWhiteMove, move.toIndex, false); // remove now-promoted pawn from board
-			DefineSquareOnBoard (move.promotionPieceType, move.isWhiteMove, move.toIndex, true); // add promoted piece to promoting player's board
-			SetBoardArraySquare(move.toIndex, move.promotionPieceType, move.isWhiteMove);
-		}
-		
-		// En passant capture
-		if (move.isEnPassantCapture) {
-			DefineSquareOnBoard(pawnCode, !move.isWhiteMove, move.enPassantPawnIndex, false); // remove opponent's pawn that was captured en passant
-			ClearBoardArraySquare(move.enPassantPawnIndex);
-		}
-		
+		int movePieceType = boardArray [moveFromIndex] & ~1; // get piece type code
+		int capturePieceType = boardArray [moveToIndex] & ~1; // get capture piece type code
+
+
+		// Update board with new move:
+		boardArray [moveToIndex] = boardArray [moveToIndex];
+		boardArray [moveFromIndex] = 0;
+
+		// Pawn moves
+		if (movePieceType == pawnCode) {
+			if (moveToIndex >= 56 || moveToIndex <= 7) { // pawn has reached first/eighth rank
+				boardArray [moveToIndex] = pieceCodeArray [promotionPieceIndex] + colourToMove; // add promoted piece to the board
+			} else if (Math.Abs (moveToIndex - moveFromIndex) == 16) { // pawn advances two squares
+				int pawnFile = moveToIndex / 8 + 1;
+				newGamestate += (ushort)(pawnFile << 5); // add ep capture file to game state
+			} else if (Math.Abs (moveToIndex - moveFromIndex) != 8) { // pawn capture
+				if (boardArray [moveToIndex] == 0) { // seemingly capturing empty square, thus en passant capture has occurred
+					int dir = (colourToMove == 1) ? 1 : -1;
+					int epCapturedPawnIndex = moveToIndex - 8 * dir; // index of pawn being captured en passant
+					boardArray [epCapturedPawnIndex] = 0; // remove captured pawn from board
+				}
+			}
+		} 
 		// Castling
-		if (move.isCastles) {
-			MakeMoveOnBoard(rookCode, move.isWhiteMove, move.rookFromIndex, move.rookToIndex); // move the castling rook to its new position
-			SetBoardArraySquare(move.rookToIndex, rookCode, move.isWhiteMove);
-			ClearBoardArraySquare(move.rookFromIndex);
-		}
-
-
-		// Define new current game state:
-		GameState newGamestate = currentGamestate;
-		newGamestate.whiteToMove = !newGamestate.whiteToMove; // toggle colour to move
-
-		// Update castling rights:
-		if ((newGamestate.castleKingsideW || newGamestate.castleQueensideW) || (newGamestate.castleKingsideB || newGamestate.castleQueensideB)) { // If any colour still has the right to castle on any side
-			// king move (including castling) immediately removes right to castle in future
-			if (move.movePieceType == kingCode) {
-				newGamestate.SetCastlingRights(move.isWhiteMove, false, false);
-			}
-			// If rook moves from original square, right to castle on that side is removed
-			else if (move.movePieceType == rookCode) {
-				if (move.isWhiteMove) {
-					if (move.fromIndex == a1) {
-						newGamestate.castleQueensideW = false;
-					}
-					else if (move.fromIndex == h1) {
-						newGamestate.castleKingsideW = false;
-					}
-				}
-				else {
-					if (move.fromIndex == a8) {
-						newGamestate.castleQueensideB = false;
-					}
-					else if (move.fromIndex == h8) {
-						newGamestate.castleKingsideB = false;
-					}
+		if ((currentGamestate & 30) != 0) { // if castling options still exist for either side (0000000000011110)
+			if (movePieceType == kingCode) { // moving king immediately removes all castling rights
+				if (colourToMove == 1) {
+					newGamestate &= 65529; // remove white castling privileges (1111111111111001)
+				} else {
+					newGamestate &= 65511; // remove black castling privileges (1111111111100111)
 				}
 			}
-			// If opponent piece captures rook, right to castle on that side is removed
-			if (move.isCapture && move.capturePieceType == rookCode) {
-				if (move.toIndex == a1) {
-					newGamestate.castleQueensideW = false;
-				}
-				else if (move.toIndex == h1) {
-					newGamestate.castleKingsideW = false;
-				}
-				else if (move.toIndex == a8) {
-					newGamestate.castleQueensideB = false;
-				}
-				else if (move.toIndex == h8) {
-					newGamestate.castleKingsideB = false;
-				}
+
+			// if a rook moves, or is captured, castling rights on that side of the board will be removed
+			if (moveFromIndex == h1 || moveToIndex == h1) {
+				newGamestate &= 65533; // white kingside (1111111111111101)
+			}
+			else if (moveFromIndex == a1 || moveToIndex == a1) {
+				newGamestate &= 65531; // white queenside (1111111111111011)
+			}
+			else if (moveFromIndex == h8 || moveToIndex == h8) {
+				newGamestate &= 65527; // black kingside (1111111111110111)
+			}
+			else if (moveFromIndex == a8 || moveToIndex == a8) {
+				newGamestate &= 65519; // black queenside (1111111111101111)
 			}
 		}
 
-		// Update en passant file index:
-		if (move.movePieceType == pawnCode) {
-			int deltaIndex = move.toIndex - move.fromIndex;
-			newGamestate.enPassantFileIndex = -1; // ep turned off after each move
-
-			if (deltaIndex == 16 || deltaIndex == -16) { // pawn has advanced two squares
-				newGamestate.enPassantFileIndex = move.toIndex % 8; // set ep index to file along which pawn has advanced
-			}
-		}
-
-		// Add new game state as current
 		gameStateHistory.Push (newGamestate);
 	}
 	
@@ -228,7 +140,9 @@ public static class Board {
 	/// Note that this will clear the board history
 	public static void SetPositionFromFen (string fen)
 	{
-		boardArray = new int[8,8];
+		boardArray = new int[64];
+		ushort initialGameState = 0;
+
 		string[] fenSections = fen.Split (' ');
 
 		string pieceChars = "rnbqkpRNBQKP";
@@ -240,7 +154,7 @@ public static class Board {
 			char key = pieceFen [i];
 			
 			if (pieceChars.Contains (key.ToString ())) {
-				int squareIndex = Coord.CoordToIndex (boardX, boardY);
+				int squareIndex = boardY*8 + boardX;
 				bool white = char.IsUpper(key);
 				int pieceCode = ColourCode(white);
 
@@ -265,8 +179,7 @@ public static class Board {
 					break;
 				}
 
-				DefineSquareOnBoard(pieceCode,white,squareIndex,true);
-				boardArray[boardX, boardY] = pieceCode;
+				boardArray[squareIndex] = pieceCode;
 
 				boardX ++;
 			} else if (key == '/') {
@@ -280,9 +193,6 @@ public static class Board {
 			}
 		}
 
-		allPiecesW = Bitboard.Combination (rooksW, knightsW, bishopsW, queensW, kingW, pawnsW);
-		allPiecesB = Bitboard.Combination (rooksB, knightsB, bishopsB, queensB, kingB, pawnsB);
-
 		// Game state
 		string sideToMove = fenSections [1];
 		string castlingRights = fenSections [2];
@@ -290,74 +200,55 @@ public static class Board {
 		string halfMoveNumber = fenSections [4];
 		string fullMoveNumber = fenSections [5];
 
-		bool whiteToMove = sideToMove == "w";
+		// Set side to move (bit 1)
+		if (sideToMove == "w") {
+			initialGameState += 1;
+		}
 
-		bool whiteKingside = false;
-		bool whiteQueenside = false;
-		bool blackKingside = false;
-		bool blackQueenside = false;
-
+		// Set castling rights (bits 2,3,4,5)
 		for (int i = 0; i < castlingRights.Length; i ++) {
 			switch (castlingRights [i]) {
 			case 'K':
-				whiteKingside = true;
+				initialGameState += 1 << 1;
 				break;
 			case 'Q':
-				whiteQueenside = true;
+				initialGameState += 1 << 2;
 				break;
 			case 'k':
-				blackKingside = true;
+				initialGameState += 1 << 3;
 				break;
 			case 'q':
-				blackQueenside = true;
+				initialGameState += 1 << 4;
 				break;
 			}
 		}
 
-		int enPassantFile = Definitions.fileNames.IndexOf (enPassantCaptureSquare [0]);
+		// En passant capture file (bits 6,7,8,9)
+		if (enPassantCaptureSquare [0] != '-') {
+			initialGameState += (ushort)(Definitions.fileNames.IndexOf (enPassantCaptureSquare [0]) << 5);
+		}
 
 		gameStateHistory.Clear ();
-		gameStateHistory.Push (new GameState (whiteKingside, blackKingside, whiteQueenside, blackQueenside, enPassantFile, whiteToMove));
+		gameStateHistory.Push (initialGameState);
+
+		UnityEngine.Debug.Log ("state " + initialGameState);
+		bool whiteToMove = (initialGameState & 1) != 0;
+		bool w00 = (initialGameState & 1<<1) != 0;
+		bool w000 = (initialGameState & 1<<2) != 0;
+		bool b00 = (initialGameState & 1<<3 )!= 0;
+		bool b000 = (initialGameState & 1<<4) != 0;
+		int epFile = (initialGameState & 480) >> 5;
+
+		UnityEngine.Debug.Log ("white to move: " + whiteToMove);
+		UnityEngine.Debug.Log ("white 0-0 " + w00 + " 0-0-0 " + w000 + " black 0-0 " + b00 + " 0-0-0 " + b000);
+		UnityEngine.Debug.Log ("ep file: " + epFile);
+
+
 	}
 
 	static int ColourCode(bool white) {
 		return (white) ? 1 : 0;
 	}
-
-	// Methods for retrieving a particular bitboard
-	public static Bitboard Rooks (bool white)
-	{
-		return (white) ? rooksW : rooksB;
-	}
-
-	public static Bitboard Knights (bool white)
-	{
-		return (white) ? knightsW : knightsB;
-	}
-
-	public static Bitboard Bishops (bool white)
-	{
-		return (white) ? bishopsW : bishopsB;
-	}
-
-	public static Bitboard Queens (bool white)
-	{
-		return (white) ? queensW : queensB;
-	}
-
-	public static Bitboard King (bool white)
-	{
-		return (white) ? kingW : kingB;
-	}
-
-	public static Bitboard Pawns (bool white)
-	{
-		return (white) ? pawnsW : pawnsB;
-	}
 	
-	public static Bitboard AllPieces (bool white)
-	{
-		return (white) ? allPiecesW : allPiecesB;
-	}
 
 }

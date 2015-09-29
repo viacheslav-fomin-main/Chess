@@ -2,8 +2,11 @@ using System.Collections;
 
 public class HumanPlayer : Player {
 
-	public static MoveOld[] legalMovesInPosition;
 
+
+//	public static MoveOld[] legalMovesInPosition;
+
+	/*
 	public override void Init (bool white) {
 		base.Init (white);
 
@@ -52,5 +55,5 @@ public class HumanPlayer : Player {
 		base.RequestMove ();
 		legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
 	}
-
+*/
 }

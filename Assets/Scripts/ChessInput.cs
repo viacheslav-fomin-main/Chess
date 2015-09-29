@@ -33,26 +33,29 @@ public class ChessInput : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Mouse0) && !holdingPiece) {
 			holdingPiece = TryGetPieceUIAtPoint(mousePosition, out pieceHeld);
 			if (holdingPiece) {
-
+					/*
 				// highlight legal moves for held piece
-				MoveOld[] legalMoves = HumanPlayer.legalMovesInPosition;
+			MoveOld[] legalMoves = HumanPlayer.legalMovesInPosition;
 				for (int i =0; i < legalMoves.Length; i ++) {
 					if (legalMoves[i].from.algebraic == pieceHeld.algebraicCoordinate) {
 						ChessUI.instance.HighlightSquare(legalMoves[i].to.algebraic);
 					}
+
 				}
+				*/
 			}
 		}
 		// Let go of piece
 		else if (Input.GetKeyUp (KeyCode.Mouse0) && holdingPiece) {
 			PieceUI dropSquare;
+		/*
 			if (TryGetPieceUIAtPoint(mousePosition, out dropSquare)) {
 				string algebraicMove = pieceHeld.algebraicCoordinate + dropSquare.algebraicCoordinate;
 				for (int i = 0; i < players.Count; i ++) {
 					players[i].TryMakeMove(algebraicMove);
 				}
 			}
-
+*/
 			ChessUI.instance.ResetHighlights();
 			pieceHeld.Release();
 			holdingPiece = false;

@@ -8,13 +8,13 @@ public class AIPlayer : Player {
 	public override void Init (bool white)
 	{
 		base.Init (white);
-		search.OnNewMoveFound += OnNewMoveFound;
+		//search.OnNewMoveFound += OnNewMoveFound;
 	}
 
 	public override void RequestMove ()
 	{
 		base.RequestMove ();
-		search.StartSearch (currentPosition);
+	//	search.StartSearch (currentPosition);
 		nextMoveTime = UnityEngine.Time.time + 5;
 		started = true;
 		//Move bestMove = search.SearchForBestMove (currentPosition);
@@ -46,28 +46,13 @@ public class AIPlayer : Player {
 			}
 		}
 		*/
-		search.Update ();
+		//search.Update ();
 
 		//if (search.bestMoveSoFar != null)
 		//UnityEngine.Debug.Log (search.bestMoveSoFar.algebraicMove);
 
-		//search.Update ();
-		if (foundMove) {
-			foundMove = false;
-			MakeMove(m);
-		}
-
 	}
 
-	bool foundMove;
-	MoveOld m;
-
-	public void OnNewMoveFound(MoveOld move) {
-		//UnityEngine.Debug.Log ("Move recieved AI");
-		foundMove = true;
-		m = move;
-		//MakeMove (move);
-	}
 
 
 }

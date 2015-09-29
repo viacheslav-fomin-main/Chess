@@ -6,28 +6,22 @@ public class MoveGenerator {
 	static int[] kingOverlay = new int[]{8, 1, -8, -1, 7, 9, -7, -9};
 	static int[] orthogonalOverlay = new int[]{8, 1, -8, -1};
 	static int[] diagonalOverlay = new int[]{7, 9, -7, -9};
-	
-	GameState currentGameState;
 
 	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
 	/// This can be used for faster move gen if king captures are going to be rejected in search
 	bool generatePsuedolegalMoves;
 	bool preMoveInitComplete;
 
-	Move[] allMoves;
-	Move[] quietMoves;
-	Move[] captureMoves;
-
 	void PreMoveInit() {
 		if (!preMoveInitComplete) {
 
 		}
 	}
+	/*
 
 	/// Returns a list of all moves in the current position
 	public List<Move> AllMoves() {
 
-		currentGameState = Board.currentGamestate;
 
 		List<Move> allMoves = new List<Move> ();
 
@@ -41,10 +35,6 @@ public class MoveGenerator {
 		List<Move> quietMoves = new List<Move> ();
 
 		bool whiteToMove = Board.currentGamestate.whiteToMove;
-
-		Bitboard friendlyBoard = Board.AllPieces (whiteToMove);
-		Bitboard hostileBoard = Board.AllPieces (!whiteToMove);
-		Bitboard allPiecesBoard = Bitboard.Combination (friendlyBoard, hostileBoard);
 
 		// Iterate through all squares on board
 		for (int x = 0; x < 7; x ++) {
@@ -116,4 +106,5 @@ public class MoveGenerator {
 
 		return true;
 	}
+	*/
 }
