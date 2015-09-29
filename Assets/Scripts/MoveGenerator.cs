@@ -5,36 +5,38 @@ public class MoveGenerator {
 	static int[] knightOverlay = new int[]{6, 15, 17, 10, -6, -15, -17, -10};
 	static int[] orthogonalOverlay = new int[]{8, 1, -8, -1};
 	static int[] diagonalOverlay = new int[]{7, 9, -7, -9};
-
-	List<Move> legalMoves;
+	
 	GameState currentGameState;
 
+	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
+	/// This can be used for faster move gen if king captures are going to be rejected in search
+	bool generatePsuedolegalMoves; 
 
-	/// Returns a list of all legal moves in the current position as defined by the Board class
-	public List<Move> GetAllLegalMoves() {
+	/// Returns a list of all moves in the current position
+	public List<Move> AllMoves() {
 
-		legalMoves = new List<Move> ();
 		currentGameState = Board.gamestate;
-		/*
-		isWhite = position.gameState.whiteToMove;
-		friendlyPieces = position.AllPieces (isWhite);
-		hostilePieces = position.AllPieces (!isWhite);
-		allPieces = BitBoardStruct.Combination (friendlyPieces, hostilePieces);
-		currentPosition = position;
+
+		List<Move> allMoves = new List<Move> ();
+
 		
-		checkInfo = GetCheckInfo (position); // Generate info relating to checks (pins etc)
-		GenerateLegalMovesForSquare (Definitions.PieceName.King, checkInfo.kingSquare);
-		
-		if (!checkInfo.inDoubleCheck) { // no pieces besides king can move when in double check
-			GetAllMovesFromBoard(currentPosition.Pawns(isWhite), Definitions.PieceName.Pawn);
-			GetAllMovesFromBoard(currentPosition.Rooks(isWhite), Definitions.PieceName.Rook);
-			GetAllMovesFromBoard(currentPosition.Knights(isWhite), Definitions.PieceName.Knight);
-			GetAllMovesFromBoard(currentPosition.Bishops(isWhite), Definitions.PieceName.Bishop);
-			GetAllMovesFromBoard(currentPosition.Queens(isWhite), Definitions.PieceName.Queen);
-		}
-*/
-		
-		return legalMoves;
+		return allMoves;
 	}
 
+	/// Returns all quiet (i.e non-capture) moves in the position.
+	/// Currently checks are considered quiet moves *if they do not capture a piece*
+	public List<Move> AllQuietMoves() {
+		List<Move> quietMoves = new List<Move> ();
+		
+		
+		return quietMoves;
+	}
+
+	/// Returns all moves that capture a piece
+	public List<Move> AllCaptures() {
+		List<Move> captureMoves = new List<Move> ();
+		
+		
+		return captureMoves;
+	}
 }

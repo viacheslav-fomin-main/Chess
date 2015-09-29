@@ -28,4 +28,16 @@ public struct GameState {
 		enPassantFileIndex = _enPassantFileIndex;
 		whiteToMove = _whiteToMove;
 	}
+
+	/// Sets castling rights for specified colour
+	public void SetCastlingRights(bool white, bool kingside, bool queenside) {
+		if (white) {
+			castleKingsideW = kingside;
+			castleQueensideW = queenside;
+		} else {
+			castleKingsideB = kingside;
+			castleQueensideB = queenside;
+		}
+	}
+	
 }

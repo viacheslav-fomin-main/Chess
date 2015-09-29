@@ -3,7 +3,7 @@ using System.Collections.Generic;
 public static class Board {
 
 
-	// piece type codes:
+	// Piece type codes:
 	// to represent colour, a 1 can be added to make the piece white.
 	const int pawnCode = 2;
 	const int rookCode = 4;
@@ -11,6 +11,12 @@ public static class Board {
 	const int bishopCode = 8;
 	const int queenCode = 10;
 	const int kingCode = 12;
+
+	// Corner indices of chessboard
+	const int a1 = 0;
+	const int a8 = 56;
+	const int h1 = 7;
+	const int h8 = 63;
 
 	/// Board array of piece codes.
 	/// Note that colour information is included in the codes.
@@ -33,7 +39,7 @@ public static class Board {
 
 	static Stack<GameState> gameStateHistory = new Stack<GameState> ();
 
-	public static GameState gamestate {
+	public static GameState currentGamestate {
 		get {
 			return gameStateHistory.Peek ();
 		}
@@ -128,7 +134,7 @@ public static class Board {
 	/// Update all boards to reflect latest move
 	public static void MakeMove (Move move)
 	{
-		// Update boards with new move
+		// Update boards with new move:
 		MakeMoveOnBoard (move.movePieceType, move.isWhiteMove, move.fromIndex, move.toIndex);
 		SetBoardArraySquare(move.toIndex, move.movePieceType, move.isWhiteMove);
 		ClearBoardArraySquare(move.fromIndex);
@@ -157,8 +163,65 @@ public static class Board {
 			ClearBoardArraySquare(move.rookFromIndex);
 		}
 
-		// Add new game state
-		gameStateHistory.Push (move.gameStateAfterMove);
+
+		// Define new current game state:
+		GameState newGamestate = currentGamestate;
+		newGamestate.whiteToMove = !newGamestate.whiteToMove; // toggle colour to move
+
+		// Update castling rights:
+		if ((newGamestate.castleKingsideW || newGamestate.castleQueensideW) || (newGamestate.castleKingsideB || newGamestate.castleQueensideB)) { // If any colour still has the right to castle on any side
+			// king move (including castling) immediately removes right to castle in future
+			if (move.movePieceType == kingCode) {
+				newGamestate.SetCastlingRights(move.isWhiteMove, false, false);
+			}
+			// If rook moves from original square, right to castle on that side is removed
+			else if (move.movePieceType == rookCode) {
+				if (move.isWhiteMove) {
+					if (move.fromIndex == a1) {
+						newGamestate.castleQueensideW = false;
+					}
+					else if (move.fromIndex == h1) {
+						newGamestate.castleKingsideW = false;
+					}
+				}
+				else {
+					if (move.fromIndex == a8) {
+						newGamestate.castleQueensideB = false;
+					}
+					else if (move.fromIndex == h8) {
+						newGamestate.castleKingsideB = false;
+					}
+				}
+			}
+			// If opponent piece captures rook, right to castle on that side is removed
+			if (move.isCapture && move.capturePieceType == rookCode) {
+				if (move.toIndex == a1) {
+					newGamestate.castleQueensideW = false;
+				}
+				else if (move.toIndex == h1) {
+					newGamestate.castleKingsideW = false;
+				}
+				else if (move.toIndex == a8) {
+					newGamestate.castleQueensideB = false;
+				}
+				else if (move.toIndex == h8) {
+					newGamestate.castleKingsideB = false;
+				}
+			}
+		}
+
+		// Update en passant file index:
+		if (move.movePieceType == pawnCode) {
+			int deltaIndex = move.toIndex - move.fromIndex;
+			newGamestate.enPassantFileIndex = -1; // ep turned off after each move
+
+			if (deltaIndex == 16 || deltaIndex == -16) { // pawn has advanced two squares
+				newGamestate.enPassantFileIndex = move.toIndex % 8; // set ep index to file along which pawn has advanced
+			}
+		}
+
+		// Add new game state as current
+		gameStateHistory.Push (newGamestate);
 	}
 	
 	/// Sets the board position from a given fen string
