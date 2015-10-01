@@ -6,6 +6,7 @@ public class _Tests : MonoBehaviour {
 	
 
 	void Start () {
+
 	/*
 		Position p = new Position ();
 		p.SetPositionFromFen (Definitions.startFen);

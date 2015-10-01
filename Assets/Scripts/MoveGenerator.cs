@@ -9,14 +9,56 @@ public class MoveGenerator {
 
 	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
 	/// This can be used for faster move gen if king captures are going to be rejected in search
-	bool generatePsuedolegalMoves;
-	bool preMoveInitComplete;
+	bool psuedolegalMode;
 
-	void PreMoveInit() {
-		if (!preMoveInitComplete) {
+	List<ushort> moves;
 
+	public List<ushort> GetMoves(bool capturesOnly, bool psuedolegal) {
+		psuedolegalMode = psuedolegal;
+		moves = new List<ushort> (128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
+
+		if (capturesOnly) {
+			GenerateCaptureMoves();
+		} else {
+			GenerateAllMoves();
+		}
+
+		return moves;
+	}
+
+	// Gemerate all moves
+	void GenerateAllMoves() {
+		int colourToMove = Board.currentGamestate & 1;
+		for (int i =0; i <= 63; i ++) {
+			if ((Board.boardArray[i] & 1) == colourToMove) {
+				int movePieceType = Board.boardArray [i] & ~1; // piece type code
+
+				if (movePieceType == Board.kingCode) { // moving the king
+					for (int overlayIndex = 0; overlayIndex < kingOverlay.Length; overlayIndex ++) {
+						//if ((Board.boardArray[i] & 1) !=
+					}
+				}
+
+
+			}
 		}
 	}
+
+	// Generates all moves that are captures. TODO: this should at some point be changed to 'aggressive moves' and include moves that deliver checks.
+	void GenerateCaptureMoves() {
+		
+	}
+
+	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
+	void CreateMove(int fromIndex, int toIndex, int promotionPieceIndex = 0) {
+		if (!psuedolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
+
+		}
+
+		ushort newMove = (ushort)(fromIndex | toIndex << 6 | promotionPieceIndex << 12);
+		moves.Add (newMove);
+	}
+
 	/*
 
 	/// Returns a list of all moves in the current position

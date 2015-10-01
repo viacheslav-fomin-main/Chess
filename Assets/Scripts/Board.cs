@@ -26,6 +26,8 @@ public static class Board {
 	/// Board array of piece codes.
 	/// Note that colour information is included in the codes.
 	public static int[] boardArray;
+	/// Board array representing colour of pieces. (0=black, 1=white, -1=vacant)
+	public static int[] boardColourArray;
 
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 
@@ -53,30 +55,37 @@ public static class Board {
 		int colourToMove = currentGamestate & 1;
 		int moveFromIndex = move & 63;
 		int moveToIndex = (move >> 6) & 63;
+		int movePieceCode = boardArray [moveToIndex];
 		int capturePieceCode = (gamestateBeforeUndo >> 9) & 15;
 
-		boardArray [moveFromIndex] = boardArray [moveToIndex];
+		// Update board
+		boardArray [moveFromIndex] = movePieceCode;
 		boardArray [moveToIndex] = capturePieceCode;
-		UnityEngine.Debug.Log ("Undo: " + move);
+		// Update colour board
+		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
 
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
 			UnityEngine.Debug.Log ("Undo castles: " + move + "  toIndex: " + moveToIndex);
 			if (moveToIndex == 2) { // white 0-0-0
 				boardArray [0] = rookCode + 1;
 				boardArray [3] = 0;
+				SetColourBoard(0,3, colourToMove); 
 			}
 			else if (moveToIndex == 6) { // white 0-0
 				UnityEngine.Debug.Log ("Undo white 0-0: " + move);
 				boardArray [7] = rookCode + 1;
 				boardArray [5] = 0;
+				SetColourBoard(7,5, colourToMove); 
 			}
 			else if (moveToIndex == 58) { // black 0-0-0
 				boardArray [56] = rookCode;
 				boardArray [59] = 0;
+				SetColourBoard(56,59, colourToMove); 
 			}
 			else if (moveToIndex == 62) { // black 0-0
 				boardArray [63] = rookCode;
 				boardArray [61] = 0;
+				SetColourBoard(63,61, colourToMove); 
 			}
 		}
 		else if ((gamestateBeforeUndo & 1 << 13) != 0) { // pawn captured en passant; put opponent-coloured pawn back on ep capture square.
@@ -88,6 +97,8 @@ public static class Board {
 			UnityEngine.Debug.Log ("undo promote: " + move);
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
+
+		DebugGameState (currentGamestate);
 
 		if (updateUI) {
 			UpdatePhysicalBoard ();
@@ -105,13 +116,16 @@ public static class Board {
 		int moveToIndex = (move >> 6) & 63;
 		int promotionPieceIndex = (move >> 12) & 3; // 0 = queen, 1 = rook, 2 = knight, 3 = bishop
 
-		int movePieceType = boardArray [moveFromIndex] & ~1; // get piece type code
+		int movePieceCode = boardArray [moveFromIndex]; // get move piece code
+		int movePieceType = movePieceCode & ~1; // get move piece type code (no colour info)
 		int capturedPieceCode = boardArray [moveToIndex]; // get capture piece code
-		int promotionPieceCode = 0;
+		int promotionPieceCode = 0; // this assigned later if promotion occurs
 
 		// Update board with new move:
-		boardArray [moveToIndex] = boardArray [moveFromIndex];
+		boardArray [moveToIndex] = movePieceCode;
 		boardArray [moveFromIndex] = 0;
+		// Update colour board
+		SetColourBoard(moveToIndex,moveFromIndex, colourToMove);
 
 		// Pawn moves
 		if (movePieceType == pawnCode) {
@@ -149,18 +163,22 @@ public static class Board {
 					if (moveToIndex == 2) { // white 0-0-0
 						boardArray [3] = rookCode + 1;
 						boardArray [0] = 0;
+						SetColourBoard(3,0, colourToMove); 
 					}
 					else if (moveToIndex == 6) { // white 0-0
 						boardArray [5] = rookCode + 1;
 						boardArray [7] = 0;
+						SetColourBoard(5,7, colourToMove); 
 					}
 					else if (moveToIndex == 58) { // black 0-0-0
 						boardArray [59] = rookCode;
 						boardArray [56] = 0;
+						SetColourBoard(59,56, colourToMove); 
 					}
 					else if (moveToIndex == 62) { // black 0-0
 						boardArray [61] = rookCode;
 						boardArray [63] = 0;
+						SetColourBoard(61,63, colourToMove); 
 					}
 				}
 			}
@@ -230,6 +248,11 @@ public static class Board {
 		pieceNameDictionary.Add (queenCode+1, 'Q');
 		pieceNameDictionary.Add (kingCode+1, 'K');
 	}
+
+	static void SetColourBoard(int setIndex, int clearIndex, int colour) {
+		boardColourArray [clearIndex] = -1;
+		boardColourArray[setIndex] = colour;
+	}
 	
 	/// Sets the board position from a given fen string
 	/// Note that this will clear the board history
@@ -238,6 +261,11 @@ public static class Board {
 		Init ();
 
 		boardArray = new int[64];
+		boardColourArray = new int[64];
+		for (int i = 0; i <= 63; i ++) { // clear colour array (all values to -1)
+			boardColourArray[i] = -1;
+		}
+
 		ushort initialGameState = 0;
 
 		string[] fenSections = fen.Split (' ');
@@ -277,6 +305,7 @@ public static class Board {
 				}
 
 				boardArray[squareIndex] = pieceCode;
+				SetColourBoard(squareIndex,squareIndex, pieceCode & 1);
 
 				boardX ++;
 			} else if (key == '/') {
@@ -343,6 +372,7 @@ public static class Board {
 		// 0-0
 		moveA |= 4;
 		moveA |= 6 << 6;
+		moveA = 4 | 6<<6;
 		MakeMove (moveA,true);
 
 		// 0-0-0
@@ -363,6 +393,7 @@ public static class Board {
 		moveD |= 39 << 6;
 		MakeMove (moveD,true);
 
+
 		UnityEngine.Debug.Log ("## undo h5");
 		UnmakeMove (moveD, true);
 		UnityEngine.Debug.Log ("## undo exf8=q");
@@ -373,18 +404,6 @@ public static class Board {
 		UnmakeMove (moveA, true);
 
 
-		/*
-		// qf6
-		move |= 59; // from square (d8)
-		move |= 45 << 6; // to square (f6)
-		MakeMove (move);
-
-		// a4
-		move = 0;
-		move |= 8;
-		move |= 24 << 6;
-		MakeMove (move);
-		*/
 	}
 
 	static void DebugGameState(ushort state) {
@@ -401,6 +420,7 @@ public static class Board {
 		UnityEngine.Debug.Log ("white 0-0 " + w00 + " 0-0-0 " + w000 + " black 0-0 " + b00 + " 0-0-0 " + b000);
 		UnityEngine.Debug.Log ("ep file: " + epFile);
 		string boardString = "";
+		string colourString = "";
 
 		if (capturedPieceCode != 0) {
 			UnityEngine.Debug.Log ("Captured piece: " + pieceNameDictionary [capturedPieceCode]);
@@ -409,17 +429,27 @@ public static class Board {
 		for (int y = 7; y>=0; y--) {
 			for (int x = 0; x < 8; x ++) {
 				int i = y*8+x;
+				// pieces
 				int code = boardArray [i];
 				if (code == 0) {
-					boardString += "#";
+					boardString += " # ";
 				}
 				else {
 					boardString += " " +pieceNameDictionary [code] + " ";
 				}
+			
+				// colour
+				string colString = (boardColourArray[i] == 0)?" B ":" W ";
+				if (boardColourArray[i] == -1) {
+					colString = " # ";
+				}
+				colourString += colString;
 			}
 			boardString += "\n";
+			colourString += "\n";
 		}
 		UnityEngine.Debug.Log (boardString);
+		UnityEngine.Debug.Log (colourString);
 		UnityEngine.Debug.Log ("########################### \n");
 	}
 

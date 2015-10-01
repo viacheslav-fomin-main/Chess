@@ -3,7 +3,8 @@
 /// Bits 1-6 = move from index
 /// Bits 7-12 = move to index
 /// Bits 13,14 = promotion piece index (queen, rook, knight, bishop)
-/// Bits 15,16 = ?
+/// Bit 15 = is capture
+/// Bit 16 = (possibly is check?)
 
 // Game state
 /// Bit 1 = colour to move (white = 1; black = 0)
