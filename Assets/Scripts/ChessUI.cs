@@ -65,13 +65,13 @@ public class ChessUI : MonoBehaviour {
 	/// Set the board UI from fen string
 	/// </summary>
 	public void SetPosition (string fen) {
-		board = new char[8,8];
 
 		// read fen into board array
 		string pieceChars = "rnbqkpRNBQKP";
 		string pieceFen = fen.Split (' ') [0];
 		int boardX = 0;
 		int boardY = 7;
+		board = new char[8,8];
 
 		for (int i = 0; i < pieceFen.Length; i ++) {
 			char key = pieceFen[i];
@@ -118,7 +118,6 @@ public class ChessUI : MonoBehaviour {
 	/// Note: all moves are assumed legal and proving non-legal input may result in errors/unexpected behaviour
 	/// </summary>
 	public void MakeMove(string move) {
-
 		int fromX = fileNames.IndexOf (move [0]);
 		int fromY = rankNames.IndexOf (move [1]);
 		int toX = fileNames.IndexOf (move [2]);
@@ -156,6 +155,17 @@ public class ChessUI : MonoBehaviour {
 		}
 
 
+		UpdateBoardUI ();
+	}
+
+	public void AutoUpdate() {
+		for (int y = 0; y < 8; y ++) {
+			for (int x = 0; x < 8; x ++) {
+				int index = y*8 + x;
+				char v =Board.pieceNameDictionary[Board.boardArray[index]];
+				board[x,y] = v;
+			}
+		}
 		UpdateBoardUI ();
 	}
 

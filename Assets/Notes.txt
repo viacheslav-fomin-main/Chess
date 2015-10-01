@@ -2,17 +2,14 @@
 // Move encoding:
 /// Bits 1-6 = move from index
 /// Bits 7-12 = move to index
-/// Bits 13,14 = promotion piece type (queen, rook, knight, bishop)
+/// Bits 13,14 = promotion piece index (queen, rook, knight, bishop)
 /// Bits 15,16 = ?
-
-/// (promotion): 00 (ep file): 0000 (castling rights): 0000 (to index): 000000 (from index): 000000
-/// In castling, each bit represents a sides ability to castle on one side. From right to left (white short, white long; black short, black long)
-/// promotion: 0 = queen, 1 = rook, 2 = knight, 3 = bishop
-
 
 // Game state
 /// Bit 1 = colour to move (white = 1; black = 0)
 /// Bit 2,3,4,5 = castling rights (white kingside, white queenside; black kingside, black queenside)
 /// Bit 6,7,8,9 = one-based en passant file (0 = no ep square, files are from 1 to 8)
-/// Bit 10,11,12 = one-based index for piece type code of last captured piece (0 = no piece captured last move; piece order is as follows: queen, rook, knight, bishop, pawn, king)
-/// Bits 13,14,15,16 = ?
+/// Bit 10,11,12,13 = piece code of last captured piece
+/// Bit 14 = move was ep capture
+/// Bit 15 = move was promotion
+/// Bit 16 = move was castles

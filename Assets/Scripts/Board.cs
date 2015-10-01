@@ -21,6 +21,8 @@ public static class Board {
 	const int h1 = 7;
 	const int h8 = 63;
 
+	public static Dictionary<int,char> pieceNameDictionary = new Dictionary<int, char> ();
+
 	/// Board array of piece codes.
 	/// Note that colour information is included in the codes.
 	public static int[] boardArray;
@@ -41,44 +43,62 @@ public static class Board {
 		return boardArray[y * 8 + x];
 	}
 	
-	/*
+
 
 	/// Undo the previous move
-	public static void UnmakeMove (Move move)
+	public static void UnmakeMove (ushort move, bool updateUI = false)
 	{
-		gameStateHistory.Pop (); // return to previous game state
+		ushort gamestateBeforeUndo = gameStateHistory.Pop (); // return to previous game state. currentGamestate now refers to the state after the undo
 
+		int colourToMove = currentGamestate & 1;
+		int moveFromIndex = move & 63;
+		int moveToIndex = (move >> 6) & 63;
+		int capturePieceCode = (gamestateBeforeUndo >> 9) & 15;
 
-		SetBoardArraySquare(move.fromIndex, move.movePieceType, move.isWhiteMove);
-		ClearBoardArraySquare(move.toIndex);
+		boardArray [moveFromIndex] = boardArray [moveToIndex];
+		boardArray [moveToIndex] = capturePieceCode;
+		UnityEngine.Debug.Log ("Undo: " + move);
 
-		if (move.isCapture) {
-			if (move.isEnPassantCapture) {
-				SetBoardArraySquare(move.enPassantPawnIndex,pawnCode, !move.isWhiteMove);
+		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
+			UnityEngine.Debug.Log ("Undo castles: " + move + "  toIndex: " + moveToIndex);
+			if (moveToIndex == 2) { // white 0-0-0
+				boardArray [0] = rookCode + 1;
+				boardArray [3] = 0;
 			}
-			else {
-				SetBoardArraySquare(move.toIndex,move.capturePieceType, !move.isWhiteMove);
+			else if (moveToIndex == 6) { // white 0-0
+				UnityEngine.Debug.Log ("Undo white 0-0: " + move);
+				boardArray [7] = rookCode + 1;
+				boardArray [5] = 0;
+			}
+			else if (moveToIndex == 58) { // black 0-0-0
+				boardArray [56] = rookCode;
+				boardArray [59] = 0;
+			}
+			else if (moveToIndex == 62) { // black 0-0
+				boardArray [63] = rookCode;
+				boardArray [61] = 0;
 			}
 		}
-
-		if (move.isPawnPromotion) {
-			SetBoardArraySquare(move.fromIndex,pawnCode, move.isWhiteMove); // replace the promoted piece with pawn (board array)
+		else if ((gamestateBeforeUndo & 1 << 13) != 0) { // pawn captured en passant; put opponent-coloured pawn back on ep capture square.
+			int dir = (colourToMove == 1) ? 1 : -1;
+			int epCapturedPawnIndex = moveToIndex - 8 * dir; // index of pawn that was captured en passant
+			boardArray [epCapturedPawnIndex] = pawnCode + (1 - colourToMove); // remove captured pawn from board
+		}
+		else if ((gamestateBeforeUndo & 1 << 14) != 0) { // move was promotion; replace promoted piece with pawn
+			UnityEngine.Debug.Log ("undo promote: " + move);
+			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
 
-		if (move.isCastles) {
-			SetBoardArraySquare(move.rookFromIndex, rookCode, move.isWhiteMove);
-			ClearBoardArraySquare(move.rookToIndex);
+		if (updateUI) {
+			UpdatePhysicalBoard ();
 		}
-
 	}
-*/
+
 
 	/// Update all boards to reflect latest move
-	public static void MakeMove (ushort move)
+	public static void MakeMove (ushort move, bool updateUI = false)
 	{
-		ushort newGamestate = currentGamestate;
-		newGamestate ^= 1; // toggle side to move
-		newGamestate &= 65055; // clear en passant file (1111111000011111)
+		ushort newGamestate = (ushort)(currentGamestate & 31); // only copy side to move and castling rights from current gamestate (0000000000011111)
 
 		int colourToMove = currentGamestate & 1;
 		int moveFromIndex = move & 63;
@@ -86,22 +106,27 @@ public static class Board {
 		int promotionPieceIndex = (move >> 12) & 3; // 0 = queen, 1 = rook, 2 = knight, 3 = bishop
 
 		int movePieceType = boardArray [moveFromIndex] & ~1; // get piece type code
-		int capturePieceType = boardArray [moveToIndex] & ~1; // get capture piece type code
-
+		int capturedPieceCode = boardArray [moveToIndex]; // get capture piece code
+		int promotionPieceCode = 0;
 
 		// Update board with new move:
-		boardArray [moveToIndex] = boardArray [moveToIndex];
+		boardArray [moveToIndex] = boardArray [moveFromIndex];
 		boardArray [moveFromIndex] = 0;
 
 		// Pawn moves
 		if (movePieceType == pawnCode) {
 			if (moveToIndex >= 56 || moveToIndex <= 7) { // pawn has reached first/eighth rank
-				boardArray [moveToIndex] = pieceCodeArray [promotionPieceIndex] + colourToMove; // add promoted piece to the board
-			} else if (Math.Abs (moveToIndex - moveFromIndex) == 16) { // pawn advances two squares
-				int pawnFile = moveToIndex / 8 + 1;
+				newGamestate |= 1<<14; // record in game state that pawn promoted this move
+				promotionPieceCode = pieceCodeArray [promotionPieceIndex] + colourToMove;
+				boardArray [moveToIndex] = promotionPieceCode; // add promoted piece to the board
+			}
+			else if (Math.Abs (moveToIndex - moveFromIndex) == 16) { // pawn advances two squares
+				int pawnFile = moveToIndex % 8 + 1; // file is stored from 1-8 (because 0 is reserved for no ep square)
 				newGamestate += (ushort)(pawnFile << 5); // add ep capture file to game state
-			} else if (Math.Abs (moveToIndex - moveFromIndex) != 8) { // pawn capture
+			}
+			else if (Math.Abs (moveToIndex - moveFromIndex) != 8) { // pawn capture
 				if (boardArray [moveToIndex] == 0) { // seemingly capturing empty square, thus en passant capture has occurred
+					newGamestate |= 1<<13; // record in game state that pawn captured en passant this move
 					int dir = (colourToMove == 1) ? 1 : -1;
 					int epCapturedPawnIndex = moveToIndex - 8 * dir; // index of pawn being captured en passant
 					boardArray [epCapturedPawnIndex] = 0; // remove captured pawn from board
@@ -111,35 +136,107 @@ public static class Board {
 		// Castling
 		if ((currentGamestate & 30) != 0) { // if castling options still exist for either side (0000000000011110)
 			if (movePieceType == kingCode) { // moving king immediately removes all castling rights
+
 				if (colourToMove == 1) {
 					newGamestate &= 65529; // remove white castling privileges (1111111111111001)
 				} else {
 					newGamestate &= 65511; // remove black castling privileges (1111111111100111)
 				}
+
+				if (Math.Abs(moveToIndex-moveFromIndex) == 2) { // king is castling this move
+					newGamestate |= 1<<15; // record in game state that king castled this move
+
+					if (moveToIndex == 2) { // white 0-0-0
+						boardArray [3] = rookCode + 1;
+						boardArray [0] = 0;
+					}
+					else if (moveToIndex == 6) { // white 0-0
+						boardArray [5] = rookCode + 1;
+						boardArray [7] = 0;
+					}
+					else if (moveToIndex == 58) { // black 0-0-0
+						boardArray [59] = rookCode;
+						boardArray [56] = 0;
+					}
+					else if (moveToIndex == 62) { // black 0-0
+						boardArray [61] = rookCode;
+						boardArray [63] = 0;
+					}
+				}
 			}
 
 			// if a rook moves, or is captured, castling rights on that side of the board will be removed
 			if (moveFromIndex == h1 || moveToIndex == h1) {
-				newGamestate &= 65533; // white kingside (1111111111111101)
+				newGamestate &= 65533; // white kingside castle no longer allowed (1111111111111101)
 			}
 			else if (moveFromIndex == a1 || moveToIndex == a1) {
-				newGamestate &= 65531; // white queenside (1111111111111011)
+				newGamestate &= 65531; // white queenside no longer allowed (1111111111111011)
 			}
 			else if (moveFromIndex == h8 || moveToIndex == h8) {
-				newGamestate &= 65527; // black kingside (1111111111110111)
+				newGamestate &= 65527; // black kingside no longer allowed (1111111111110111)
 			}
 			else if (moveFromIndex == a8 || moveToIndex == a8) {
-				newGamestate &= 65519; // black queenside (1111111111101111)
+				newGamestate &= 65519; // black queenside no longer allowed (1111111111101111)
 			}
 		}
 
+		newGamestate ^= 1; // toggle side to move
+		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
+
+		DebugGameState (newGamestate);
+
+		if (updateUI) {
+			UpdatePhysicalBoard (moveFromIndex, moveToIndex, promotionPieceCode);
+		}
+	}
+
+	static void UpdatePhysicalBoard() {
+		ChessUI.instance.AutoUpdate ();
+	}
+
+	static void UpdatePhysicalBoard(int fromIndex, int toIndex, int promotionPieceCode) {
+		ChessUI.instance.AutoUpdate ();
+		return;
+		/*
+		int fromX = fromIndex % 8;
+		int fromY = fromIndex / 8;
+		int toX = toIndex % 8;
+		int toY = toIndex / 8;
+
+		string fromString = Definitions.fileNames [fromX] +""+ Definitions.rankNames [fromY];
+		string toString = Definitions.fileNames [toX] +""+ Definitions.rankNames [toY];
+		string promoteString = pieceNameDictionary [promotionPieceCode];
+		string move = fromString + toString + promoteString;
+		//UnityEngine.Debug.Log ("move alg: " + move);
+		ChessUI.instance.MakeMove (move);
+		*/
+	}
+
+	static void Init() {
+		pieceNameDictionary.Add (0, ' ');
+
+		pieceNameDictionary.Add (pawnCode, 'p');
+		pieceNameDictionary.Add (rookCode, 'r');
+		pieceNameDictionary.Add (knightCode, 'n');
+		pieceNameDictionary.Add (bishopCode, 'b');
+		pieceNameDictionary.Add (queenCode, 'q');
+		pieceNameDictionary.Add (kingCode, 'k');
+		
+		pieceNameDictionary.Add (pawnCode+1, 'P');
+		pieceNameDictionary.Add (rookCode+1, 'R');
+		pieceNameDictionary.Add (knightCode+1, 'N');
+		pieceNameDictionary.Add (bishopCode+1, 'B');
+		pieceNameDictionary.Add (queenCode+1, 'Q');
+		pieceNameDictionary.Add (kingCode+1, 'K');
 	}
 	
 	/// Sets the board position from a given fen string
 	/// Note that this will clear the board history
 	public static void SetPositionFromFen (string fen)
 	{
+		Init ();
+
 		boardArray = new int[64];
 		ushort initialGameState = 0;
 
@@ -158,23 +255,23 @@ public static class Board {
 				bool white = char.IsUpper(key);
 				int pieceCode = ColourCode(white);
 
-				switch (key.ToString().ToUpper()) {
-				case "R":
+				switch (key.ToString().ToUpper().ToCharArray()[0]) {
+				case 'R':
 					pieceCode |= rookCode;
 					break;
-				case "N":
+				case 'N':
 					pieceCode |= knightCode;
 					break;
-				case "B":
+				case 'B':
 					pieceCode |= bishopCode;
 					break;
-				case "Q":
+				case 'Q':
 					pieceCode |= queenCode;
 					break;
-				case "K":
+				case 'K':
 					pieceCode |= kingCode;
 					break;
-				case "P":
+				case 'P':
 					pieceCode |= pawnCode;
 					break;
 				}
@@ -231,20 +328,101 @@ public static class Board {
 		gameStateHistory.Clear ();
 		gameStateHistory.Push (initialGameState);
 
-		UnityEngine.Debug.Log ("state " + initialGameState);
-		bool whiteToMove = (initialGameState & 1) != 0;
-		bool w00 = (initialGameState & 1<<1) != 0;
-		bool w000 = (initialGameState & 1<<2) != 0;
-		bool b00 = (initialGameState & 1<<3 )!= 0;
-		bool b000 = (initialGameState & 1<<4) != 0;
-		int epFile = (initialGameState & 480) >> 5;
 
+		MakeTestMove ();
+		//DebugGameState (initialGameState);
+	}
+
+	static void MakeTestMove() {
+		//return;
+		ushort moveA = 0;
+		ushort moveB = 0;
+		ushort moveC = 0;
+		ushort moveD = 0;
+
+		// 0-0
+		moveA |= 4;
+		moveA |= 6 << 6;
+		MakeMove (moveA,true);
+
+		// 0-0-0
+		moveB = 0;
+		moveB |= 60;
+		moveB |= 58 << 6;
+		MakeMove (moveB,true);
+
+		// exf8=Q
+		moveC = 0;
+		moveC |= 52;
+		moveC |= 61 << 6;
+		MakeMove (moveC,true);
+
+		// h5
+		moveD = 0;
+		moveD |= 55;
+		moveD |= 39 << 6;
+		MakeMove (moveD,true);
+
+		UnityEngine.Debug.Log ("## undo h5");
+		UnmakeMove (moveD, true);
+		UnityEngine.Debug.Log ("## undo exf8=q");
+		UnmakeMove (moveC, true);
+		UnityEngine.Debug.Log ("## undo black 0-0-0");
+		UnmakeMove (moveB, true);
+		UnityEngine.Debug.Log ("## undo white 0-0");
+		UnmakeMove (moveA, true);
+
+
+		/*
+		// qf6
+		move |= 59; // from square (d8)
+		move |= 45 << 6; // to square (f6)
+		MakeMove (move);
+
+		// a4
+		move = 0;
+		move |= 8;
+		move |= 24 << 6;
+		MakeMove (move);
+		*/
+	}
+
+	static void DebugGameState(ushort state) {
+		UnityEngine.Debug.Log ("state " + state);
+		bool whiteToMove = (state & 1) != 0;
+		bool w00 = (state & 1<<1) != 0;
+		bool w000 = (state & 1<<2) != 0;
+		bool b00 = (state & 1<<3 )!= 0;
+		bool b000 = (state & 1<<4) != 0;
+		int epFile = (state >> 5) & 15;
+		int capturedPieceCode = (state >> 9) & 15;
+		
 		UnityEngine.Debug.Log ("white to move: " + whiteToMove);
 		UnityEngine.Debug.Log ("white 0-0 " + w00 + " 0-0-0 " + w000 + " black 0-0 " + b00 + " 0-0-0 " + b000);
 		UnityEngine.Debug.Log ("ep file: " + epFile);
+		string boardString = "";
 
+		if (capturedPieceCode != 0) {
+			UnityEngine.Debug.Log ("Captured piece: " + pieceNameDictionary [capturedPieceCode]);
+		}
 
+		for (int y = 7; y>=0; y--) {
+			for (int x = 0; x < 8; x ++) {
+				int i = y*8+x;
+				int code = boardArray [i];
+				if (code == 0) {
+					boardString += "#";
+				}
+				else {
+					boardString += " " +pieceNameDictionary [code] + " ";
+				}
+			}
+			boardString += "\n";
+		}
+		UnityEngine.Debug.Log (boardString);
+		UnityEngine.Debug.Log ("########################### \n");
 	}
+
 
 	static int ColourCode(bool white) {
 		return (white) ? 1 : 0;

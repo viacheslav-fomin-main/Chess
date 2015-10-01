@@ -3,7 +3,7 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour {
 	
-	void Awake () {
+	void Start () {
 		Board.SetPositionFromFen (Definitions.startFen);
 	}
 
