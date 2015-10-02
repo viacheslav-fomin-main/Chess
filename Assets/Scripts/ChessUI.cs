@@ -161,7 +161,7 @@ public class ChessUI : MonoBehaviour {
 	public void AutoUpdate() {
 		for (int y = 0; y < 8; y ++) {
 			for (int x = 0; x < 8; x ++) {
-				int index = y*8 + x;
+				int index = Board.Convert64to128(y*8 + x);
 				char v =Board.pieceNameDictionary[Board.boardArray[index]];
 				board[x,y] = v;
 			}

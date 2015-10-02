@@ -1,10 +1,8 @@
 
 // Move encoding:
-/// Bits 1-6 = move from index
-/// Bits 7-12 = move to index
-/// Bits 13,14 = promotion piece index (queen = 0, rook = 1, knight = 2, bishop = 3)
-/// Bit 15 = is capture
-/// Bit 16 = (possibly is check?)
+/// Bits 1-7 = move from index
+/// Bits 8-14 = move to index
+/// Bits 15,16 = promotion piece index (queen = 0, rook = 1, knight = 2, bishop = 3)
 
 // Game state
 /// Bit 1 = colour to move (white = 1; black = 0)

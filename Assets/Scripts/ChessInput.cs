@@ -67,17 +67,22 @@ public class ChessInput : MonoBehaviour {
 	}
 
 	void HighlightSquare(ushort move, string pieceAlgebraic) {
-		int moveFromIndex = move & 63;
-		int moveToIndex = (move >> 6) & 63;
-		int moveFromX = moveFromIndex % 8;
-		int moveFromY = moveFromIndex / 8;
-		int moveToX = moveToIndex % 8;
-		int moveToY = moveToIndex / 8;
+		int moveFromIndex = move & 127;
+		int moveToIndex = (move >> 7) & 127;
+
+		int moveFromX = Board.Convert128to64(moveFromIndex) % 8;
+		int moveFromY = Board.Convert128to64(moveFromIndex) / 8;
+    	int moveToX = Board.Convert128to64(moveToIndex) % 8;
+  		int moveToY = Board.Convert128to64(moveToIndex) / 8;
 
 
 		string fromAlgebraic = Definitions.fileNames[moveFromX].ToString() + Definitions.rankNames[moveFromY].ToString();
 		string toAlgebraic = Definitions.fileNames[moveToX].ToString() + Definitions.rankNames[moveToY].ToString();
-		print ("Move: " + fromAlgebraic + toAlgebraic);
+
+		if (moveFromIndex == 4) {
+			//print(moveToIndex + "  " + move + "   " + fromAlgebraic + toAlgebraic);
+		}
+	//	print ("Move: " + fromAlgebraic + toAlgebraic);
 		if (fromAlgebraic == pieceHeld.algebraicCoordinate) {
 			ChessUI.instance.HighlightSquare(toAlgebraic);
 		}

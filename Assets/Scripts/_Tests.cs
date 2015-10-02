@@ -6,7 +6,19 @@ public class _Tests : MonoBehaviour {
 	
 
 	void Start () {
-
+		/*
+		int moveFromIndex = 4;
+		int moveToIndex = 19;
+		int moveFromX = Board.Convert128to64(moveFromIndex) % 8;
+		int moveFromY = Board.Convert128to64(moveFromIndex) / 8;
+		int moveToX = Board.Convert128to64(moveToIndex) % 8;
+		int moveToY = Board.Convert128to64(moveToIndex) / 8;
+		
+		
+		string fromAlgebraic = Definitions.fileNames[moveFromX].ToString() + Definitions.rankNames[moveFromY].ToString();
+		string toAlgebraic = Definitions.fileNames[moveToX].ToString() + Definitions.rankNames[moveToY].ToString();
+		print ("Move: " + fromAlgebraic + toAlgebraic);
+*/
 	/*
 		Position p = new Position ();
 		p.SetPositionFromFen (Definitions.startFen);
