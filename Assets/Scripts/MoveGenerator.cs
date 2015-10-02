@@ -26,22 +26,143 @@ public class MoveGenerator {
 		return moves;
 	}
 
-	// Gemerate all moves
+	/// Generate all moves
 	void GenerateAllMoves() {
 		int colourToMove = Board.currentGamestate & 1;
-		for (int i =0; i <= 63; i ++) {
-			if ((Board.boardArray[i] & 1) == colourToMove) {
-				int movePieceType = Board.boardArray [i] & ~1; // piece type code
+		int opponentColour = 1 - colourToMove;
+		int moveToIndex;
 
-				if (movePieceType == Board.kingCode) { // moving the king
+		for (int moveFromIndex =0; moveFromIndex <= 63; moveFromIndex ++) {
+			if (Board.boardColourArray[moveFromIndex] == colourToMove) { // only find moves for piece of correct colour
+				int movePieceType = Board.boardArray [moveFromIndex] & ~1; // piece type code
+
+				// Moving the king:
+				if (movePieceType == Board.kingCode) {
 					for (int overlayIndex = 0; overlayIndex < kingOverlay.Length; overlayIndex ++) {
-						//if ((Board.boardArray[i] & 1) !=
+						moveToIndex = moveFromIndex + kingOverlay[overlayIndex];
+						if (IndexOnBoard(moveToIndex)) {
+							if (Board.boardColourArray[moveToIndex] != colourToMove) { // can't move to square occupied by friendly piece
+								CreateKingMove(moveFromIndex,moveToIndex,0,false);
+							}
+						}
 					}
+
+					// Castling:
+					if (colourToMove == 1 && moveFromIndex == 4) { // white king still on starting square
+						if ((Board.currentGamestate >> 1 & 1) == 1) { // has 0-0 right
+							if (Board.boardArray[5] == 0 && Board.boardArray[6] == 0) { // no pieces blocking castling
+								CreateKingMove(4,6,5,true);
+							}
+						}
+						if ((Board.currentGamestate >> 2 & 1) == 1) { // has 0-0-0 right
+							if (Board.boardArray[3] == 0 && Board.boardArray[2] == 0 && Board.boardArray[1] == 0) { // no pieces blocking castling
+								CreateKingMove(4,2,3,true);
+							}
+						}
+					}
+					else if (colourToMove == 0 && moveFromIndex == 60) { // black king still on starting square
+						if ((Board.currentGamestate >> 3 & 1) == 1) { // has 0-0 right
+							if (Board.boardArray[61] == 0 && Board.boardArray[62] == 0) { // no pieces blocking castling
+								CreateKingMove(60,62,61,true);
+							}
+						}
+						if ((Board.currentGamestate >> 4 & 1) == 1) { // has 0-0-0 right
+							if (Board.boardArray[59] == 0 && Board.boardArray[58] == 0 && Board.boardArray[57] == 0) { // no pieces blocking castling
+								CreateKingMove(60,58,59,true);
+							}
+						}
+					}
+				}
+
+				// Moving the knight:
+				else if (movePieceType == Board.knightCode) {
+					for (int overlayIndex = 0; overlayIndex < knightOverlay.Length; overlayIndex ++) {
+						moveToIndex = moveFromIndex + knightOverlay[overlayIndex];
+						if (IndexOnBoard(moveToIndex)) {
+							if (Board.boardColourArray[moveToIndex] != colourToMove) { // can't move to square occupied by friendly piece
+								CreateMove(moveFromIndex,moveToIndex);
+							}
+						}
+					}
+				}
+				// Moving a pawn:
+				else if (movePieceType == Board.pawnCode) {
+					int pawnDirection = (colourToMove == 1)?1:-1;
+					moveToIndex = moveFromIndex + pawnDirection*8;
+					if (Board.boardArray[moveToIndex] == 0) { // pawn can only move forward to unoccupied square
+						if (moveToIndex >= 56 || moveToIndex <= 7) { // pawn is promoting
+							CreateMove(moveFromIndex,moveToIndex, 0); // promote to queen
+							CreateMove(moveFromIndex,moveToIndex, 1); // promote to rook
+							CreateMove(moveFromIndex,moveToIndex, 2); // promote to knight
+							CreateMove(moveFromIndex,moveToIndex, 3); // promote to bishop
+						}
+						else {
+							CreateMove(moveFromIndex,moveToIndex); // regular pawn move
+
+							if ((moveFromIndex <= 15 && colourToMove == 1) || (moveFromIndex >= 48 && colourToMove == 0)) { // pawn on starting rank
+								moveToIndex = moveFromIndex + pawnDirection * 16; 
+								if (Board.boardArray[moveToIndex] == 0) { // if no pieces blocking double pawn push
+									CreateMove(moveFromIndex,moveToIndex); // move two squares
+								}
+							}
+
+							// pawn captures
+							if (moveFromIndex %8 != 0) { // if not on left edge of board
+								moveToIndex = moveFromIndex + (8-pawnDirection) * pawnDirection; // capture left (from white's pov)
+								if (Board.boardColourArray[moveToIndex] == opponentColour) { // if capture square contains opponent piece
+									CreateMove(moveFromIndex,moveToIndex);
+								}
+							}
+							if ((moveFromIndex+1) %8 != 0) { // if not on right edge of board
+								moveToIndex = moveFromIndex + (8+pawnDirection) * pawnDirection; // capture right (from white's pov)
+								if (Board.boardColourArray[moveToIndex] == opponentColour) { // if capture square contains opponent piece
+									CreateMove(moveFromIndex,moveToIndex);
+								}
+							}
+						}
+					}
+				}
+				// Queen, rook and bishop
+				else {
+					int startIndex = 0;
+					int endIndex = 7;
+
+					if (movePieceType == Board.bishopCode) {
+						startIndex = 4; // skip horizontal overlays
+					}
+					else if (movePieceType == Board.rookCode) {
+						endIndex = 3; // skip diagonal overlays
+					}
+
+					for (int overlayIndex = startIndex; overlayIndex <= endIndex; overlayIndex ++) {
+						for (int i =0; i <= 63; i ++) {
+							moveToIndex = startIndex + kingOverlay[overlayIndex] * i;
+							bool lineOpen = IndexOnBoard(moveToIndex);
+							if (lineOpen) {
+								if (Board.boardArray[moveToIndex] != 0) { // something is obstructing movement
+									lineOpen = false;
+								}
+								if (Board.boardColourArray[moveToIndex] != colourToMove) { // if square is not friendly, i.e contains enemy or no piece, square can be moves to
+									CreateMove(moveFromIndex, moveToIndex);
+								}
+							}
+
+							if (!lineOpen) {
+								break; // stop searching this line once it has reached obstruction/end of board
+							}
+						}
+					}
+
 				}
 
 
 			}
 		}
+	}
+
+	/// Returns true if the given colour player attacks the given square. This can be used for detecting checks etc.
+	bool SquareAttackedByPlayer(int squareIndex, int colour) {
+		return false;
 	}
 
 	// Generates all moves that are captures. TODO: this should at some point be changed to 'aggressive moves' and include moves that deliver checks.
@@ -50,6 +171,7 @@ public class MoveGenerator {
 	}
 
 	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
+	/// Note: for king moves use separate CreateKingMove method
 	void CreateMove(int fromIndex, int toIndex, int promotionPieceIndex = 0) {
 		if (!psuedolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
 
@@ -59,6 +181,22 @@ public class MoveGenerator {
 		moves.Add (newMove);
 	}
 
+	/// Creates and adds king move to move list. Also checks legality if not in psuedolegal mode.
+	/// castleThroughIndex is the square which king passes through during castling (so that can't castle through check)
+	void CreateKingMove(int fromIndex, int toIndex, int castleThroughIndex, bool isCastles) {
+		if (!psuedolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check / caslting through check
+			if (isCastles) {
+
+			}
+		}
+		
+		ushort newMove = (ushort)(fromIndex | toIndex << 6);
+		moves.Add (newMove);
+	}
+
+	bool IndexOnBoard(int squareIndex) {
+		return squareIndex >= 0 && squareIndex <= 63;
+	}
 	/*
 
 	/// Returns a list of all moves in the current position

@@ -13,7 +13,10 @@ public class ChessInput : MonoBehaviour {
 	List<HumanPlayer> players = new List<HumanPlayer>();
 	bool active;
 
+	MoveGenerator moveGenerator;
+
 	void Start() {
+		moveGenerator = new MoveGenerator ();
 		viewCamera = Camera.main;
 	}
 
@@ -33,16 +36,13 @@ public class ChessInput : MonoBehaviour {
 		if (Input.GetKeyDown(KeyCode.Mouse0) && !holdingPiece) {
 			holdingPiece = TryGetPieceUIAtPoint(mousePosition, out pieceHeld);
 			if (holdingPiece) {
-					/*
 				// highlight legal moves for held piece
-			MoveOld[] legalMoves = HumanPlayer.legalMovesInPosition;
-				for (int i =0; i < legalMoves.Length; i ++) {
-					if (legalMoves[i].from.algebraic == pieceHeld.algebraicCoordinate) {
-						ChessUI.instance.HighlightSquare(legalMoves[i].to.algebraic);
-					}
+				List<ushort> legalMoves = moveGenerator.GetMoves(false,false);
+				for (int i =0; i < legalMoves.Count; i ++) {
+					HighlightSquare(legalMoves[i], pieceHeld.algebraicCoordinate);
 
 				}
-				*/
+
 			}
 		}
 		// Let go of piece
@@ -63,6 +63,23 @@ public class ChessInput : MonoBehaviour {
 		// Drag piece
 		else if (Input.GetKey (KeyCode.Mouse0) && holdingPiece) {
 			pieceHeld.Move(mousePosition);
+		}
+	}
+
+	void HighlightSquare(ushort move, string pieceAlgebraic) {
+		int moveFromIndex = move & 63;
+		int moveToIndex = (move >> 6) & 63;
+		int moveFromX = moveFromIndex % 8;
+		int moveFromY = moveFromIndex / 8;
+		int moveToX = moveToIndex % 8;
+		int moveToY = moveToIndex / 8;
+
+
+		string fromAlgebraic = Definitions.fileNames[moveFromX].ToString() + Definitions.rankNames[moveFromY].ToString();
+		string toAlgebraic = Definitions.fileNames[moveToX].ToString() + Definitions.rankNames[moveToY].ToString();
+		print ("Move: " + fromAlgebraic + toAlgebraic);
+		if (fromAlgebraic == pieceHeld.algebraicCoordinate) {
+			ChessUI.instance.HighlightSquare(toAlgebraic);
 		}
 	}
 	
