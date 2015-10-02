@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class HumanPlayer : Player {
 
+	public static Stack<ushort> movesMade = new Stack<ushort>();
 	List<ushort> legalMoves;
 
 	public override void Init (bool white) {
@@ -15,8 +16,11 @@ public class HumanPlayer : Player {
 	protected override void MakeMove (ushort move)
 	{
 		base.MakeMove (move);
+		movesMade.Push (move);
 		//legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
 	}
+
+
 
 	/// <summary>
 	/// Makes the move after confirming that it is legal

@@ -74,14 +74,12 @@ public static class Board {
 		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
 
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
-			UnityEngine.Debug.Log ("Undo castles: " + move + "  toIndex: " + moveToIndex);
 			if (moveToIndex == 2) { // white 0-0-0
 				boardArray [0] = rookCode + 1;
 				boardArray [3] = 0;
 				SetColourBoard(0,3, colourToMove); 
 			}
 			else if (moveToIndex == 6) { // white 0-0
-				UnityEngine.Debug.Log ("Undo white 0-0: " + move);
 				boardArray [7] = rookCode + 1;
 				boardArray [5] = 0;
 				SetColourBoard(7,5, colourToMove); 
@@ -104,7 +102,6 @@ public static class Board {
 			boardColourArray [epCapturedPawnIndex] = (1 - colourToMove);
 		}
 		else if ((gamestateBeforeUndo & 1 << 14) != 0) { // move was promotion; replace promoted piece with pawn
-			UnityEngine.Debug.Log ("undo promote: " + move);
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
 
@@ -153,7 +150,6 @@ public static class Board {
 				if (capturedPieceCode == 0) { // seemingly capturing empty square, thus en passant capture has occurred
 					newGamestate |= 1<<13; // record in game state that pawn captured en passant this move
 					int dir = (colourToMove == 1) ? 1 : -1;
-					UnityEngine.Debug.Log("Pawn en passant capture square: " + (moveToIndex - 16 * dir));
 					int epCapturedPawnIndex = moveToIndex - 16 * dir; // index of pawn being captured en passant
 					boardArray [epCapturedPawnIndex] = 0; // remove captured pawn from board
 					boardColourArray [epCapturedPawnIndex] = -1;
@@ -226,23 +222,26 @@ public static class Board {
 		ChessUI.instance.AutoUpdate ();
 	}
 	
-
+	static bool isInitialized;
 	static void Init() {
-		pieceNameDictionary.Add (0, ' ');
+		if (!isInitialized) {
+			isInitialized = true;
+			pieceNameDictionary.Add (0, ' ');
 
-		pieceNameDictionary.Add (pawnCode, 'p');
-		pieceNameDictionary.Add (rookCode, 'r');
-		pieceNameDictionary.Add (knightCode, 'n');
-		pieceNameDictionary.Add (bishopCode, 'b');
-		pieceNameDictionary.Add (queenCode, 'q');
-		pieceNameDictionary.Add (kingCode, 'k');
-		
-		pieceNameDictionary.Add (pawnCode+1, 'P');
-		pieceNameDictionary.Add (rookCode+1, 'R');
-		pieceNameDictionary.Add (knightCode+1, 'N');
-		pieceNameDictionary.Add (bishopCode+1, 'B');
-		pieceNameDictionary.Add (queenCode+1, 'Q');
-		pieceNameDictionary.Add (kingCode+1, 'K');
+			pieceNameDictionary.Add (pawnCode, 'p');
+			pieceNameDictionary.Add (rookCode, 'r');
+			pieceNameDictionary.Add (knightCode, 'n');
+			pieceNameDictionary.Add (bishopCode, 'b');
+			pieceNameDictionary.Add (queenCode, 'q');
+			pieceNameDictionary.Add (kingCode, 'k');
+			
+			pieceNameDictionary.Add (pawnCode + 1, 'P');
+			pieceNameDictionary.Add (rookCode + 1, 'R');
+			pieceNameDictionary.Add (knightCode + 1, 'N');
+			pieceNameDictionary.Add (bishopCode + 1, 'B');
+			pieceNameDictionary.Add (queenCode + 1, 'Q');
+			pieceNameDictionary.Add (kingCode + 1, 'K');
+		}
 	}
 
 	static void SetColourBoard(int setIndex, int clearIndex, int colour) {
@@ -353,9 +352,7 @@ public static class Board {
 		gameStateHistory.Clear ();
 		gameStateHistory.Push (initialGameState);
 
-
-		MakeTestMove ();
-		//DebugGameState (initialGameState);
+		UpdatePhysicalBoard ();
 	}
 
 	static void MakeTestMove() {

@@ -426,8 +426,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usePerft: 1
   printMoves: 0
-  depth: 3
-  fen: r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10
+  searchDepth: 5
+  fen: '"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";'
 --- !u!1 &88931495
 GameObject:
   m_ObjectHideFlags: 0

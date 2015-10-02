@@ -35,9 +35,6 @@ public class ChessUI : MonoBehaviour {
 
 	static ChessUI myInstance;
 
-	string fileNames = "abcdefgh";
-	string rankNames = "12345678";
-
 	// Editor vars:
 	[HideInInspector]
 	public string editorFen;
@@ -46,7 +43,6 @@ public class ChessUI : MonoBehaviour {
 
 	void Awake() {
 		CreateBoardUI ();
-		SetPosition (Definitions.startFen);
 	}
 
 	/// <summary>
@@ -103,8 +99,8 @@ public class ChessUI : MonoBehaviour {
 	/// Highlight the given square (algebraic coordinate)
 	/// </summary>
 	public void HighlightSquare(string squaresToHighlight) {
-		int squareX = fileNames.IndexOf (squaresToHighlight [0]);
-		int squareY = rankNames.IndexOf (squaresToHighlight [1]);
+		int squareX = Definitions.fileNames.IndexOf (squaresToHighlight [0]);
+		int squareY = Definitions.rankNames.IndexOf (squaresToHighlight [1]);
 
 		squares [squareX, squareY].material.color = Color.green;
 	}
@@ -118,10 +114,10 @@ public class ChessUI : MonoBehaviour {
 	/// Note: all moves are assumed legal and proving non-legal input may result in errors/unexpected behaviour
 	/// </summary>
 	public void MakeMove(string move) {
-		int fromX = fileNames.IndexOf (move [0]);
-		int fromY = rankNames.IndexOf (move [1]);
-		int toX = fileNames.IndexOf (move [2]);
-		int toY = rankNames.IndexOf (move [3]);
+		int fromX = Definitions.fileNames.IndexOf (move [0]);
+		int fromY = Definitions.rankNames.IndexOf (move [1]);
+		int toX = Definitions.fileNames.IndexOf (move [2]);
+		int toY = Definitions.rankNames.IndexOf (move [3]);
 
 		// detect en passant
 		if (char.ToUpper (board [fromX, fromY]) == 'P') {
@@ -181,6 +177,8 @@ public class ChessUI : MonoBehaviour {
 	}
 
 	public void CreateBoardUI () {
+		board = new char[8,8];
+
 		// Create new holder objects for easy organisation/deletion of board UI elements
 		string holderName = "UI Holder";
 
@@ -207,7 +205,7 @@ public class ChessUI : MonoBehaviour {
 		for (int y = 0; y < 8; y ++) {
 			for (int x = 0; x < 8; x ++) {
 				Vector2 position = new Vector2(-4.5f + x+1, -4.5f + y+1);
-				string algebraicCoordinate = fileNames[x].ToString() + rankNames[y].ToString();
+				string algebraicCoordinate = Definitions.fileNames[x].ToString() + Definitions.rankNames[y].ToString();
 				bool isLightSquare = ((y+x)%2) != 0;
 
 				// squares

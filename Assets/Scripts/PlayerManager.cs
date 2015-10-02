@@ -68,6 +68,10 @@ public class PlayerManager : MonoBehaviour {
 	void Update() {
 		whitePlayer.Update ();
 		blackPlayer.Update ();
+
+		if (Input.GetKeyDown(KeyCode.Backspace)) {
+			Board.UnmakeMove(HumanPlayer.movesMade.Pop(),true);
+		}
 	}
 
 

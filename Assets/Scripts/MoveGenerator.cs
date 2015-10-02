@@ -161,7 +161,7 @@ public class MoveGenerator {
 	}
 
 	/// Returns true if the given colour player attacks the given square. This can be used for detecting checks etc.
-	bool SquareAttackedByPlayer(int squareIndex, int colour) {
+	bool SquareAttackedByPlayer(int squareIndex, int colour, bool lookForDoubleCheck = false) {
 		return false;
 	}
 
