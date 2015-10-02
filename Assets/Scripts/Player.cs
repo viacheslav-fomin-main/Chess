@@ -7,7 +7,7 @@ using System;
 
 public class Player {
 	
-	public IMoveGenerator moveGenerator;
+	public MoveGenerator moveGenerator;
 	public Action OnMove;
 
 	protected bool isWhite;
@@ -15,12 +15,12 @@ public class Player {
 	public virtual void Init(bool white) {
 
 		isWhite = white;
+		moveGenerator = new MoveGenerator ();
 	}
 
 
-	protected virtual void MakeMove() {
-		//ChessUI.instance.MakeMove (move.algebraicMove);
-		//currentPosition.MakeMove (move);
+	protected virtual void MakeMove(ushort move) {
+		Board.MakeMove (move,true);
 		if (OnMove != null) {
 			OnMove();
 		}

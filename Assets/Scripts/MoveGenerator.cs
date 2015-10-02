@@ -111,16 +111,17 @@ public class MoveGenerator {
 							}
 						}
 					}
+					int epCaptureIndex = (Board.currentGamestate >> 5 & 15) -1 + ((opponentColour == 0)?80:32);
 					// pawn captures
 					moveToIndex = moveFromIndex + (16-pawnDirection) * pawnDirection; // capture left (from white's pov)
 					if (IndexOnBoard(moveToIndex)) {
-						if (Board.boardColourArray[moveToIndex] == opponentColour) { // if capture square contains opponent piece
+						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
 							CreateMove(moveFromIndex,moveToIndex);
 						}
 					}
 					moveToIndex = moveFromIndex + (16+pawnDirection) * pawnDirection; // capture right (from white's pov)
 					if (IndexOnBoard(moveToIndex)) {
-						if (Board.boardColourArray[moveToIndex] == opponentColour) { // if capture square contains opponent piece
+						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
 							CreateMove(moveFromIndex,moveToIndex);
 						}
 					}

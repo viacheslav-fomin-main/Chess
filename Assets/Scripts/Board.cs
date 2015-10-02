@@ -108,7 +108,7 @@ public static class Board {
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
 
-		DebugGameState (currentGamestate);
+		//DebugGameState (currentGamestate);
 
 		if (updateUI) {
 			UpdatePhysicalBoard ();
@@ -215,7 +215,7 @@ public static class Board {
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
 
-		DebugGameState (newGamestate);
+		//DebugGameState (newGamestate);
 
 		if (updateUI) {
 			UpdatePhysicalBoard();

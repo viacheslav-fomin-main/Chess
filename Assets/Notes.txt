@@ -9,6 +9,6 @@
 /// Bit 2,3,4,5 = castling rights (white kingside, white queenside; black kingside, black queenside)
 /// Bit 6,7,8,9 = one-based en passant file (0 = no ep square, files are from 1 to 8)
 /// Bit 10,11,12,13 = piece code of last captured piece
-/// Bit 14 = move was ep capture
-/// Bit 15 = move was promotion
-/// Bit 16 = move was castles
+/// Bit 14 = move was ep capture (not implemented)
+/// Bit 15 = move was promotion (not implemented)
+/// Bit 16 = move was castles (not implemented)
