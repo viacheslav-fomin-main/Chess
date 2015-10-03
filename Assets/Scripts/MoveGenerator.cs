@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 public class MoveGenerator {
 
@@ -9,13 +10,32 @@ public class MoveGenerator {
 
 	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
 	/// This can be used for faster move gen if king captures are going to be rejected in search
-	bool psuedolegalMode;
-
+	bool pseudolegalMode;
 	List<ushort> moves;
 
-	public List<ushort> GetMoves(bool capturesOnly, bool psuedolegal) {
-		psuedolegalMode = psuedolegal;
+	int kingSquareIndex;
+	int moveColour;
+
+	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal) {
+		pseudolegalMode = pseudolegal;
 		moves = new List<ushort> (128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
+
+		moveColour = Board.currentGamestate & 1;
+
+		// find king index (to look for checks)
+		if (!pseudolegalMode) {
+
+			for (int i =0; i <= 127; i ++) {
+				int possibleKingIndex = (moveColour == 1)?i:127-i; // white king most likely on lower half of board, black king most likely on upper half
+				if ((possibleKingIndex & 8) != 0) { // don't look at indices which are not on the real board
+					continue;
+				}
+				if (Board.boardArray[possibleKingIndex] == Board.kingCode + moveColour) {
+					kingSquareIndex = possibleKingIndex;
+					break;
+				}
+			}
+		}
 
 		if (capturesOnly) {
 			GenerateCaptureMoves();
@@ -28,16 +48,14 @@ public class MoveGenerator {
 
 	/// Generate all moves
 	void GenerateAllMoves() {
-
-		int colourToMove = Board.currentGamestate & 1;
-		int opponentColour = 1 - colourToMove;
+		int opponentColour = 1 - moveColour;
 		int moveToIndex;
 
 		for (int moveFromIndex =0; moveFromIndex <= 127; moveFromIndex ++) {
 			if ((moveFromIndex & 8) != 0) { // don't look at indices which are not on the real board
 				continue;
 			}
-			if (Board.boardColourArray[moveFromIndex] == colourToMove) { // only find moves for piece of correct colour
+			if (Board.boardColourArray[moveFromIndex] == moveColour) { // only find moves for piece of correct colour
 				int movePieceType = Board.boardArray [moveFromIndex] & ~1; // piece type code
 
 				// Moving the king:
@@ -45,14 +63,14 @@ public class MoveGenerator {
 					for (int overlayIndex = 0; overlayIndex < kingOverlay.Length; overlayIndex ++) {
 						moveToIndex = moveFromIndex + kingOverlay[overlayIndex];
 						if (IndexOnBoard(moveToIndex)) {
-							if (Board.boardColourArray[moveToIndex] != colourToMove) { // can't move to square occupied by friendly piece
+							if (Board.boardColourArray[moveToIndex] != moveColour) { // can't move to square occupied by friendly piece
 								CreateKingMove(moveFromIndex,moveToIndex,0,false);
 							}
 						}
 					}
 
 					// Castling:
-					if (colourToMove == 1 && moveFromIndex == 4) { // white king still on starting square
+					if (moveColour == 1 && moveFromIndex == 4) { // white king still on starting square
 						if ((Board.currentGamestate >> 1 & 1) == 1) { // has 0-0 right
 							if (Board.boardArray[5] == 0 && Board.boardArray[6] == 0) { // no pieces blocking castling
 								CreateKingMove(4,6,5,true);
@@ -64,7 +82,7 @@ public class MoveGenerator {
 							}
 						}
 					}
-					else if (colourToMove == 0 && moveFromIndex == 116) { // black king still on starting square
+					else if (moveColour == 0 && moveFromIndex == 116) { // black king still on starting square
 						if ((Board.currentGamestate >> 3 & 1) == 1) { // has 0-0 right
 							if (Board.boardArray[117] == 0 && Board.boardArray[118] == 0) { // no pieces blocking castling
 								CreateKingMove(116,118,117,true);
@@ -83,7 +101,7 @@ public class MoveGenerator {
 					for (int overlayIndex = 0; overlayIndex < knightOverlay.Length; overlayIndex ++) {
 						moveToIndex = moveFromIndex + knightOverlay[overlayIndex];
 						if (IndexOnBoard(moveToIndex)) {
-							if (Board.boardColourArray[moveToIndex] != colourToMove) { // can't move to square occupied by friendly piece
+							if (Board.boardColourArray[moveToIndex] != moveColour) { // can't move to square occupied by friendly piece
 								CreateMove(moveFromIndex,moveToIndex);
 							}
 						}
@@ -91,7 +109,7 @@ public class MoveGenerator {
 				}
 				// Moving a pawn:
 				else if (movePieceType == Board.pawnCode) {
-					int pawnDirection = (colourToMove == 1)?1:-1;
+					int pawnDirection = (moveColour == 1)?1:-1;
 					moveToIndex = moveFromIndex + pawnDirection*16;
 					if (Board.boardArray[moveToIndex] == 0) { // square in front of pawn is unnocupied
 						if (moveToIndex >= 112 || moveToIndex <= 7) { // pawn is promoting
@@ -103,7 +121,7 @@ public class MoveGenerator {
 						else {
 							CreateMove(moveFromIndex,moveToIndex); // regular pawn move
 
-							if ((moveFromIndex <= 23 && colourToMove == 1) || (moveFromIndex >= 96 && colourToMove == 0)) { // pawn on starting rank
+							if ((moveFromIndex <= 23 && moveColour == 1) || (moveFromIndex >= 96 && moveColour == 0)) { // pawn on starting rank
 								moveToIndex = moveFromIndex + pawnDirection * 32; 
 								if (Board.boardArray[moveToIndex] == 0) { // if no pieces blocking double pawn push
 									CreateMove(moveFromIndex,moveToIndex); // move two squares
@@ -146,7 +164,7 @@ public class MoveGenerator {
 								if (Board.boardArray[moveToIndex] != 0) { // something is obstructing movement
 									lineOpen = false;
 								}
-								if (Board.boardColourArray[moveToIndex] != colourToMove) { // if square is not friendly, i.e contains enemy or no piece, square can be moves to
+								if (Board.boardColourArray[moveToIndex] != moveColour) { // if square is not friendly, i.e contains enemy or no piece, square can be moves to
 									CreateMove(moveFromIndex, moveToIndex);
 								}
 							}
@@ -161,7 +179,78 @@ public class MoveGenerator {
 	}
 
 	/// Returns true if the given colour player attacks the given square. This can be used for detecting checks etc.
-	bool SquareAttackedByPlayer(int squareIndex, int colour, bool lookForDoubleCheck = false) {
+	bool SquareAttackedByPlayer(int targetSquareIndex, int colour) {
+		int moveToIndex;
+
+		// Knight attacks
+		for (int overlayIndex = 0; overlayIndex < knightOverlay.Length; overlayIndex ++) {
+			moveToIndex = targetSquareIndex + knightOverlay[overlayIndex];
+			if (IndexOnBoard(moveToIndex)) {
+				if (Board.boardArray[moveToIndex] == Board.knightCode + colour) {
+					return true; // square is attacked by knight
+				}
+			}
+		}
+
+		int pawnDir = (colour == 1) ? 1 : -1;
+		// Diagonal attacks
+		for (int overlayIndex = 0; overlayIndex < diagonalOverlay.Length; overlayIndex ++) {
+			for (int i =1; i <= 8; i ++) {
+				moveToIndex = targetSquareIndex + diagonalOverlay[overlayIndex] * i;
+				if (IndexOnBoard(moveToIndex)) {
+					if (Board.boardColourArray[moveToIndex] != -1) { // if square is not empty
+						if (i == 1) { // could be attacked by a pawn/king
+							if (Board.boardArray[moveToIndex] == Board.kingCode + colour) {
+								return true; // target square attacked by king
+							}
+							if (Math.Sign(targetSquareIndex-moveToIndex) == pawnDir) { // in correct direction to be attacked by pawn
+								if (Board.boardArray[moveToIndex] == Board.pawnCode + colour) {
+									return true; // target square attacked by pawn
+								}
+							}
+						}
+						if (Board.boardArray[moveToIndex] == Board.bishopCode + colour || Board.boardArray[moveToIndex] == Board.queenCode + colour) { // piece is bishop or queen
+							return true; // target square attacked by bishop/queen
+						}
+						else {
+							break; // piece is obstructing further attacks on this line
+						}
+					}
+				}
+				else {
+					break;
+				}
+		
+			}
+		}
+
+		// Orthogonal attacks
+		for (int overlayIndex = 0; overlayIndex < orthogonalOverlay.Length; overlayIndex ++) {
+			for (int i =1; i <= 8; i ++) {
+				moveToIndex = targetSquareIndex + orthogonalOverlay[overlayIndex] * i;
+				if (IndexOnBoard(moveToIndex)) {
+					if (Board.boardColourArray[moveToIndex] != -1) { // if square is not empty
+
+						if (i == 1) { // could be attacked by king
+							if (Board.boardArray[moveToIndex] == Board.kingCode + colour) {
+								return true; // target square attacked by king
+							}
+						}
+						if (Board.boardArray[moveToIndex] == Board.rookCode + colour || Board.boardArray[moveToIndex] == Board.queenCode + colour) { // piece is rook or queen
+							return true; // target square attacked by rook/queen
+						}
+						else {
+							break; // piece is obstructing further attacks on this line
+						}
+					}
+				}
+				else {
+					break;
+				}
+				
+			}
+		}
+
 		return false;
 	}
 
@@ -173,24 +262,41 @@ public class MoveGenerator {
 	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
 	/// Note: for king moves use separate CreateKingMove method
 	void CreateMove(int fromIndex, int toIndex, int promotionPieceIndex = 0) {
-		if (!psuedolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
+		ushort newMove = (ushort)(fromIndex | toIndex << 7 | promotionPieceIndex << 14);
 
+		if (!pseudolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
+			Board.MakeMove(newMove);
+			bool inCheck = SquareAttackedByPlayer(kingSquareIndex,(1-moveColour));
+			Board.UnmakeMove(newMove);
+			if (inCheck) {
+				return;
+			}
 		}
 
-		ushort newMove = (ushort)(fromIndex | toIndex << 7 | promotionPieceIndex << 14);
 		moves.Add (newMove);
 	}
 
 	/// Creates and adds king move to move list. Also checks legality if not in psuedolegal mode.
 	/// castleThroughIndex is the square which king passes through during castling (so that can't castle through check)
 	void CreateKingMove(int fromIndex, int toIndex, int castleThroughIndex, bool isCastles) {
-		if (!psuedolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check / caslting through check
-			if (isCastles) {
+		ushort newMove = (ushort)(fromIndex | toIndex << 7);
 
+		if (!pseudolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check / castling through check
+			Board.MakeMove(newMove);
+			bool inCheck = SquareAttackedByPlayer(toIndex,(1-moveColour));
+			Board.UnmakeMove(newMove);
+			if (inCheck) {
+				return;
+			}
+
+			if (isCastles) {
+				if (SquareAttackedByPlayer(castleThroughIndex, (1-moveColour))) { // cannot castle if castling through check
+					return;
+				}
 			}
 		}
 		
-		ushort newMove = (ushort)(fromIndex | toIndex << 7);
+
 		moves.Add (newMove);
 	}
 

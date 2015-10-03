@@ -72,6 +72,7 @@ public static class Board {
 		boardArray [moveToIndex] = capturePieceCode;
 		// Update colour board
 		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
+		SetColourBoard (moveToIndex, capturePieceCode);
 
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
 			if (moveToIndex == 2) { // white 0-0-0
@@ -241,6 +242,14 @@ public static class Board {
 			pieceNameDictionary.Add (bishopCode + 1, 'B');
 			pieceNameDictionary.Add (queenCode + 1, 'Q');
 			pieceNameDictionary.Add (kingCode + 1, 'K');
+		}
+	}
+
+	static void SetColourBoard(int setIndex, int pieceCode) {
+		if (pieceCode == 0) {
+			boardColourArray [setIndex] = -1;
+		} else {
+			boardColourArray [setIndex] = pieceCode & 1;
 		}
 	}
 
