@@ -27,9 +27,9 @@ public class Search {
 		moveGenerator = new MoveGenerator ();
 		findingMoveForWhite = Board.isWhiteToPlay ();
 
-		//Thread searchThread = new Thread (Iterate);
-		//searchThread.Start ();
-		Iterate ();
+		Thread searchThread = new Thread (Iterate);
+		searchThread.Start ();
+		//Iterate ();
 	}
 
 
@@ -109,6 +109,7 @@ public class Search {
 	}
 
 	public int Evaluate() {
+		return Evaluation.Evaluate ();
 		System.Random r = new Random ();
 		return r.Next(-500,500); // TODO: evaluate the current board position
 	}

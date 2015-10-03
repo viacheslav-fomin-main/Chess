@@ -175,6 +175,93 @@ public class MoveGenerator {
 		}
 	}
 
+	// Generates all moves that are captures. TODO: this should at some point be changed to 'aggressive moves' and include moves that deliver checks.
+	void GenerateCaptureMoves() {
+		int opponentColour = 1 - moveColour;
+		int moveToIndex;
+		
+		for (int moveFromIndex =0; moveFromIndex <= 127; moveFromIndex ++) {
+			if ((moveFromIndex & 8) != 0) { // don't look at indices which are not on the real board
+				continue;
+			}
+			if (Board.boardColourArray[moveFromIndex] == moveColour) { // only find moves for piece of correct colour
+				int movePieceType = Board.boardArray [moveFromIndex] & ~1; // piece type code
+				
+				// Moving the king:
+				if (movePieceType == Board.kingCode) {
+					for (int overlayIndex = 0; overlayIndex < kingOverlay.Length; overlayIndex ++) {
+						moveToIndex = moveFromIndex + kingOverlay[overlayIndex];
+						if (IndexOnBoard(moveToIndex)) {
+							if (Board.boardColourArray[moveToIndex] == opponentColour) { 
+								CreateKingMove(moveFromIndex,moveToIndex,0,false);
+							}
+						}
+					}
+				}
+				
+				// Moving the knight:
+				else if (movePieceType == Board.knightCode) {
+					for (int overlayIndex = 0; overlayIndex < knightOverlay.Length; overlayIndex ++) {
+						moveToIndex = moveFromIndex + knightOverlay[overlayIndex];
+						if (IndexOnBoard(moveToIndex)) {
+							if (Board.boardColourArray[moveToIndex] == opponentColour) { // can't move to square occupied by friendly piece
+								CreateMove(moveFromIndex,moveToIndex);
+							}
+						}
+					}
+				}
+				// Moving a pawn:
+				else if (movePieceType == Board.pawnCode) {
+					int pawnDirection = (moveColour == 1)?1:-1;
+					int epCaptureIndex = (Board.currentGamestate >> 5 & 15) -1 + ((opponentColour == 0)?80:32);
+					// pawn captures
+					moveToIndex = moveFromIndex + (16-pawnDirection) * pawnDirection; // capture left (from white's pov)
+					if (IndexOnBoard(moveToIndex)) {
+						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
+							CreatePawnMove(moveFromIndex,moveToIndex,epCaptureIndex); // TODO: ep capture index parameter is only for stat counting. Remove.
+						}
+					}
+					moveToIndex = moveFromIndex + (16+pawnDirection) * pawnDirection; // capture right (from white's pov)
+					if (IndexOnBoard(moveToIndex)) {
+						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
+							CreatePawnMove(moveFromIndex,moveToIndex,epCaptureIndex); // TODO: ep capture index parameter is only for stat counting. Remove.
+						}
+					}
+				}
+				// Queen, rook and bishop
+				else {
+					int startIndex = 0;
+					int endIndex = 7;
+					
+					if (movePieceType == Board.bishopCode) {
+						startIndex = 4; // skip horizontal overlays
+					}
+					else if (movePieceType == Board.rookCode) {
+						endIndex = 3; // skip diagonal overlays
+					}
+					
+					for (int overlayIndex = startIndex; overlayIndex <= endIndex; overlayIndex ++) {
+						for (int i =1; i <= 8; i ++) {
+							moveToIndex = moveFromIndex + kingOverlay[overlayIndex] * i;
+							bool lineOpen = IndexOnBoard(moveToIndex);
+							if (lineOpen) {
+								if (Board.boardArray[moveToIndex] != 0) { // something is obstructing movement
+									lineOpen = false;
+								}
+								if (Board.boardColourArray[moveToIndex] == opponentColour) { // capture piece
+									CreateMove(moveFromIndex, moveToIndex);
+								}
+							}
+							if (!lineOpen) {
+								break; // stop searching this line once it has reached obstruction/end of board
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/// Returns true if the given colour player attacks the given square. This can be used for detecting checks etc.
 	bool SquareAttackedByPlayer(int targetSquareIndex, int colour) {
 		int moveToIndex;
@@ -250,11 +337,7 @@ public class MoveGenerator {
 
 		return false;
 	}
-
-	// Generates all moves that are captures. TODO: this should at some point be changed to 'aggressive moves' and include moves that deliver checks.
-	void GenerateCaptureMoves() {
-		
-	}
+	
 
 	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
 	/// Note: for king moves use separate CreateKingMove method
