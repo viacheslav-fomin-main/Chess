@@ -20,6 +20,7 @@ public class Player {
 
 
 	protected virtual void MakeMove(ushort move) {
+		UnityEngine.Debug.Log ("Making move: I am white - " + isWhite);
 		Board.MakeMove (move,true);
 		if (OnMove != null) {
 			OnMove();

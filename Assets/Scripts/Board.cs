@@ -3,6 +3,7 @@ using System;
 
 public static class Board {
 
+	public static bool debugMode;
 
 	// Piece type codes:
 	// to represent colour, a 1 can be added to make the piece white.
@@ -106,7 +107,9 @@ public static class Board {
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
 
-		//DebugGameState (currentGamestate);
+		if (debugMode) {
+			DebugGameState (currentGamestate);
+		}
 
 		if (updateUI) {
 			UpdatePhysicalBoard ();
@@ -140,6 +143,7 @@ public static class Board {
 		if (movePieceType == pawnCode) {
 			if (moveToIndex >= 112 || moveToIndex <= 7) { // pawn has reached first/eighth rank
 				newGamestate |= 1<<14; // record in game state that pawn promoted this move
+				promotionPieceIndex = move >> 14 & 3;
 				promotionPieceCode = pieceCodeArray [promotionPieceIndex] + colourToMove;
 				boardArray [moveToIndex] = promotionPieceCode; // add promoted piece to the board
 			}
@@ -212,7 +216,9 @@ public static class Board {
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
 
-		//DebugGameState (newGamestate);
+		if (debugMode) {
+			DebugGameState (newGamestate);
+		}
 
 		if (updateUI) {
 			UpdatePhysicalBoard();
@@ -366,6 +372,7 @@ public static class Board {
 
 	static void MakeTestMove() {
 		return;
+		/*
 		ushort moveA = 0;
 		ushort moveB = 0;
 		ushort moveC = 0;
@@ -409,7 +416,12 @@ public static class Board {
 		UnmakeMove (moveC, true);
 		UnmakeMove (moveB, true);
 		UnmakeMove (moveA, true);
+		*/
 
+	}
+
+	public static bool isWhiteToPlay() {
+		return ((currentGamestate&1) == 1);
 	}
 
 	static void DebugGameState(ushort state) {

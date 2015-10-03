@@ -8,6 +8,11 @@ public class MoveGenerator {
 	static int[] orthogonalOverlay = new int[]{16, 1, -16, -1};
 	static int[] diagonalOverlay = new int[]{15, 17, -15, -17};
 
+	public static bool trackStats;
+	public static int captures;
+	public static int castles;
+	public static int promotions;
+
 	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
 	/// This can be used for faster move gen if king captures are going to be rejected in search
 	bool pseudolegalMode;
@@ -112,20 +117,12 @@ public class MoveGenerator {
 					int pawnDirection = (moveColour == 1)?1:-1;
 					moveToIndex = moveFromIndex + pawnDirection*16;
 					if (Board.boardArray[moveToIndex] == 0) { // square in front of pawn is unnocupied
-						if (moveToIndex >= 112 || moveToIndex <= 7) { // pawn is promoting
-							CreateMove(moveFromIndex,moveToIndex, 0); // promote to queen
-							CreateMove(moveFromIndex,moveToIndex, 1); // promote to rook
-							CreateMove(moveFromIndex,moveToIndex, 2); // promote to knight
-							CreateMove(moveFromIndex,moveToIndex, 3); // promote to bishop
-						}
-						else {
-							CreateMove(moveFromIndex,moveToIndex); // regular pawn move
+						CreatePawnMove(moveFromIndex,moveToIndex); // regular pawn move
 
-							if ((moveFromIndex <= 23 && moveColour == 1) || (moveFromIndex >= 96 && moveColour == 0)) { // pawn on starting rank
-								moveToIndex = moveFromIndex + pawnDirection * 32; 
-								if (Board.boardArray[moveToIndex] == 0) { // if no pieces blocking double pawn push
-									CreateMove(moveFromIndex,moveToIndex); // move two squares
-								}
+						if ((moveFromIndex <= 23 && moveColour == 1) || (moveFromIndex >= 96 && moveColour == 0)) { // pawn on starting rank
+							moveToIndex = moveFromIndex + pawnDirection * 32; 
+							if (Board.boardArray[moveToIndex] == 0) { // if no pieces blocking double pawn push
+								CreatePawnMove(moveFromIndex,moveToIndex); // move two squares
 							}
 						}
 					}
@@ -134,13 +131,13 @@ public class MoveGenerator {
 					moveToIndex = moveFromIndex + (16-pawnDirection) * pawnDirection; // capture left (from white's pov)
 					if (IndexOnBoard(moveToIndex)) {
 						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
-							CreateMove(moveFromIndex,moveToIndex);
+							CreatePawnMove(moveFromIndex,moveToIndex,epCaptureIndex); // TODO: ep capture index parameter is only for stat counting. Remove.
 						}
 					}
 					moveToIndex = moveFromIndex + (16+pawnDirection) * pawnDirection; // capture right (from white's pov)
 					if (IndexOnBoard(moveToIndex)) {
 						if (Board.boardColourArray[moveToIndex] == opponentColour || moveToIndex == epCaptureIndex) { // if capture square contains opponent piece or is ep capture square
-							CreateMove(moveFromIndex,moveToIndex);
+							CreatePawnMove(moveFromIndex,moveToIndex,epCaptureIndex); // TODO: ep capture index parameter is only for stat counting. Remove.
 						}
 					}
 				}
@@ -261,8 +258,8 @@ public class MoveGenerator {
 
 	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
 	/// Note: for king moves use separate CreateKingMove method
-	void CreateMove(int fromIndex, int toIndex, int promotionPieceIndex = 0) {
-		ushort newMove = (ushort)(fromIndex | toIndex << 7 | promotionPieceIndex << 14);
+	void CreateMove(int fromIndex, int toIndex) {
+		ushort newMove = (ushort)(fromIndex | toIndex << 7);
 
 		if (!pseudolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
 			Board.MakeMove(newMove);
@@ -273,7 +270,46 @@ public class MoveGenerator {
 			}
 		}
 
+		if (trackStats) {
+			if (Board.boardColourArray[toIndex] == (1-moveColour)) {
+				captures ++;
+			}
+		}
+
 		moves.Add (newMove);
+	}
+
+	/// Creates and adds move to move list. Also checks legality if not in psuedolegal mode
+	/// Note: for king moves use separate CreateKingMove method
+	void CreatePawnMove(int fromIndex, int toIndex, int epCaptureIndex = -1) {
+		ushort newMove = (ushort)(fromIndex | toIndex << 7);
+		
+		if (!pseudolegalMode) { // if not in psuedolegal mode, elimate moves that leave king in check
+			Board.MakeMove(newMove);
+			bool inCheck = SquareAttackedByPlayer(kingSquareIndex,(1-moveColour));
+			Board.UnmakeMove(newMove);
+			if (inCheck) {
+				return;
+			}
+		}
+		
+		if (trackStats) {
+			if (Board.boardColourArray[toIndex] == (1-moveColour) || toIndex == epCaptureIndex) {
+				captures ++;
+			}
+		}
+
+		moves.Add (newMove); // regular move / promote to queen (queen index is 0 so no modification necessary)
+
+		if (toIndex >= 112 || toIndex <= 7) { // pawn is promoting
+			if (trackStats) {
+				promotions += 4;
+			}
+			moves.Add ((ushort)(newMove | 1 << 14)); // rook
+			moves.Add ((ushort)(newMove | 2 << 14)); // knight
+			moves.Add ((ushort)(newMove | 3 << 14)); // bishop
+		}
+
 	}
 
 	/// Creates and adds king move to move list. Also checks legality if not in psuedolegal mode.
@@ -293,9 +329,23 @@ public class MoveGenerator {
 				if (SquareAttackedByPlayer(castleThroughIndex, (1-moveColour))) { // cannot castle if castling through check
 					return;
 				}
+				if (SquareAttackedByPlayer(fromIndex, (1-moveColour))) { // cannot castle if currently in check
+					return;
+				}
+				if (trackStats) {
+					castles ++;
+				}
+
+
 			}
 		}
 		
+		if (trackStats) {
+			if (Board.boardColourArray[toIndex] == (1-moveColour)) {
+				captures ++;
+			}
+		}
+
 
 		moves.Add (newMove);
 	}

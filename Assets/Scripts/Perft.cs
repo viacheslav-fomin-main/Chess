@@ -7,9 +7,11 @@ using System;
 public class Perft : MonoBehaviour {
 
 	public bool usePerft;
-	public bool printMoves;
+	public bool runAllTests;
 	public int searchDepth;
 	public string fen;
+
+	public PerftResults[] tests;
 
 	int nodeSearchCount;
 	MoveGenerator moveGenerator;
@@ -18,14 +20,50 @@ public class Perft : MonoBehaviour {
 	void Start() {
 		if (usePerft) {
 			moveGenerator = new MoveGenerator();
-			Board.SetPositionFromFen(fen);
-			Timer.Start("Perft");
-			PerfTest(searchDepth);
-			Timer.Stop("Perft");
-			Timer.Print("Perft");
-			print("Leaf nodes at depth " + searchDepth + ": " + nodeSearchCount);
 
+			if (runAllTests) {
+				bool allCorrect = true;
+				for (int i =0; i < tests.Length; i ++) {
+					searchDepth = tests[i].depth;
+					fen = tests[i].fen;
+					int correctResult = tests[i].correctResult;
+					int result = RunTest();
+					if (correctResult == result) {
+						print ("Results match");
+					}
+					else {
+						allCorrect = false;
+						print ("Error at test " + i + " Result: " + result + "; expected: " + correctResult);
+					}
+				}
+				if (allCorrect) {
+					print ("Test suite passed");
+				}
+				else {
+					print ("Test suite failed");
+				}
+			}
+			else {
+				RunTest();
+			}
+		
 		}
+	}
+
+	int RunTest() {
+		nodeSearchCount = 0;
+		MoveGenerator.captures = 0;
+		MoveGenerator.castles = 0;
+		MoveGenerator.promotions = 0;
+
+		Board.SetPositionFromFen(fen);
+		Timer.Start("Perft");
+		PerfTest(searchDepth);
+		Timer.Stop("Perft");
+		Timer.Print("Perft");
+		print("Leaf nodes at depth " + searchDepth + ": " + nodeSearchCount);
+		print ("Captures: " + MoveGenerator.captures + "  Castles: " + MoveGenerator.castles + "   Promotions: " + MoveGenerator.promotions);
+		return nodeSearchCount;
 	}
 
 	void PerfTest(int depth) {
@@ -33,12 +71,25 @@ public class Perft : MonoBehaviour {
 			nodeSearchCount ++;
 			return;
 		}
+		if (depth == 1) {
+			MoveGenerator.trackStats = true;
+		}
 		List<ushort> moves = moveGenerator.GetMoves (false, false);
+		MoveGenerator.trackStats = false;
 		for (int i =0; i < moves.Count; i ++) {
 			Board.MakeMove(moves[i]);
 			PerfTest(depth-1);
 			Board.UnmakeMove(moves[i]);
 		}
+	}
+
+	[System.Serializable]
+	public class PerftResults {
+		public string name;
+		public string fen;
+		public int depth;
+		public int correctResult;
+		public bool myResultsMatch = true;
 	}
 
 

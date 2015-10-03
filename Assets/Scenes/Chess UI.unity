@@ -424,10 +424,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13da7eca3e64f44899725571f8e03dc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  usePerft: 1
-  printMoves: 0
-  searchDepth: 6
-  fen: '"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";'
+  usePerft: 0
+  runAllTests: 0
+  searchDepth: 4
+  fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0
+  tests:
+  - name: Start position
+    fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    depth: 5
+    correctResult: 4865609
+    myResultsMatch: 1
+  - name: Position 3
+    fen: 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0
+    depth: 5
+    correctResult: 674624
+    myResultsMatch: 1
+  - name: Position 2
+    fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 0
+    depth: 4
+    correctResult: 4085603
+    myResultsMatch: 1
 --- !u!1 &88931495
 GameObject:
   m_ObjectHideFlags: 0
