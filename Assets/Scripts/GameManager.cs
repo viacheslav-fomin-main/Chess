@@ -2,9 +2,15 @@
 using System.Collections;
 
 public class GameManager : MonoBehaviour {
+
+	PlayerManager playerManager;
 	
 	void Start () {
+		playerManager = GetComponent<PlayerManager> ();
+
 		Board.SetPositionFromFen (Definitions.startFen);
+
+		playerManager.CreatePlayers ();
 	}
 
 }

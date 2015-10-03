@@ -20,7 +20,6 @@ public class Player {
 
 
 	protected virtual void MakeMove(ushort move) {
-		UnityEngine.Debug.Log ("Making move: I am white - " + isWhite);
 		Board.MakeMove (move,true);
 		if (OnMove != null) {
 			OnMove();
@@ -34,5 +33,10 @@ public class Player {
 	public virtual void Update() {
 	}
 
+	protected bool isMyMove {
+		get {
+			return isWhite == Board.isWhiteToPlay ();
+		}
+	}
 
 }

@@ -14,7 +14,7 @@ public class PlayerManager : MonoBehaviour {
 
 	ChessInput boardInput;
 
-	void Start() {
+	public void CreatePlayers() {
 		boardInput = GetComponent<ChessInput> ();
 
 		HumanPlayer whiteHuman = null;

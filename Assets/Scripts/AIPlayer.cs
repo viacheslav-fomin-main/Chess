@@ -3,54 +3,26 @@ using System;
 
 public class AIPlayer : Player {
 
-	Search search = new Search();
+	Search searcher;
 
 	public override void Init (bool white)
 	{
 		base.Init (white);
-		//search.OnNewMoveFound += OnNewMoveFound;
+		searcher = new Search ();
 	}
 
 	public override void RequestMove ()
 	{
 		base.RequestMove ();
-	//	search.StartSearch (currentPosition);
-		nextMoveTime = UnityEngine.Time.time + 5;
-		started = true;
-		//Move bestMove = search.SearchForBestMove (currentPosition);
-		//MakeMove (bestMove);
-		//Move[] moves = moveGenerator.GetAllLegalMoves (currentPosition);
-		
-		//Random random = new Random ();
-		//MakeMove (moves [random.Next (0, moves.Length)]);
+		searcher.StartSearch ();
 	}
-
-	float nextMoveTime;
-	bool started;
+	
 
 	public override void Update() {
-		/*
-		if (currentPosition.gameState.whiteToMove == false) {
-			if (search.bestMoveSoFar != null) {
-				UnityEngine.Debug.Log (search.bestMoveSoFar.algebraicMove);
-			}
-			if (search.returnReady || UnityEngine.Time.time > nextMoveTime) {
-				if (search.returnReady) {
-					UnityEngine.Debug.Log ("Move recieved AI Update");
-				} else {
-					UnityEngine.Debug.Log ("Forcing move");
-				}
-
-				search.returnReady = false;
-				MakeMove (search.bestMoveSoFar);
-			}
+		if (searcher.finishedSearch && isMyMove) {
+			MakeMove(searcher.bestMoveSoFar);
+			UnityEngine.Debug.Log("Searcher: " + searcher.nodesSearched + " nodes searched; " + searcher.breakCount + " cutoffs.");
 		}
-		*/
-		//search.Update ();
-
-		//if (search.bestMoveSoFar != null)
-		//UnityEngine.Debug.Log (search.bestMoveSoFar.algebraicMove);
-
 	}
 
 
