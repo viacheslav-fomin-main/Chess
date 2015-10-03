@@ -4,6 +4,7 @@ using System;
 public class AIPlayer : Player {
 
 	Search searcher;
+	bool moveRequested;
 
 	public override void Init (bool white)
 	{
@@ -13,15 +14,17 @@ public class AIPlayer : Player {
 
 	public override void RequestMove ()
 	{
+
 		base.RequestMove ();
+		moveRequested = true;
 		searcher.StartSearch ();
 	}
 	
 
 	public override void Update() {
-		if (searcher.finishedSearch && isMyMove) {
+		if (searcher.finishedSearch && isMyMove && moveRequested) {
 			MakeMove(searcher.bestMoveSoFar);
-			UnityEngine.Debug.Log("Searcher: " + searcher.nodesSearched + " nodes searched; " + searcher.breakCount + " cutoffs.");
+			moveRequested = false;
 		}
 	}
 

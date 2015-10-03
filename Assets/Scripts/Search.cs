@@ -27,8 +27,9 @@ public class Search {
 		moveGenerator = new MoveGenerator ();
 		findingMoveForWhite = Board.isWhiteToPlay ();
 
-		Thread searchThread = new Thread (Iterate);
-		searchThread.Start ();
+		//Thread searchThread = new Thread (Iterate);
+		//searchThread.Start ();
+		Iterate ();
 	}
 
 
