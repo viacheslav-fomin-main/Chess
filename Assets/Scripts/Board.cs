@@ -333,8 +333,8 @@ public static class Board {
 		string sideToMove = fenSections [1];
 		string castlingRights = fenSections [2];
 		string enPassantCaptureSquare = fenSections [3];
-		string halfMoveNumber = fenSections [4];
-		string fullMoveNumber = fenSections [5];
+		//string halfMoveNumber = fenSections [4];
+	//	string fullMoveNumber = fenSections [5];
 
 		// Set side to move (bit 1)
 		if (sideToMove == "w") {

@@ -47,13 +47,16 @@ public class Search {
 
 
 	int AlphaBetaSearch(int depth, int alpha, int beta, bool isWhite) {
+
+		List<ushort> moves = GetOrderedMoves ();
+		if (moves.Count == 0) {
+			return ((isWhite)?-1:1) * 10000*depth; // if no moves available, side has been checkmated. Return best score for opponent. Checkmating sooner (higher depth) is rewarded.
+		}
+
+
 		if (depth == 0) {
 			nodesSearched ++;
 			return Evaluate();
-		}
-		List<ushort> moves = GetOrderedMoves ();
-		if (moves.Count == 0) {
-			return (isWhite)?int.MinValue:int.MaxValue; // if not moves available, side has been checkmated. Return best score for opponent.
 		}
 
 		int value = int.MinValue;

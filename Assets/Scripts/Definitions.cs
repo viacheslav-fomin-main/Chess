@@ -8,6 +8,7 @@ public class Definitions {
 
 	public static string startFen {
 		get {
+			//return "B7/K1B1p1Q1/5r2/7p/1P1kp1bR/3P3R/1P1NP3/2n5 w - - 0 1";
 			return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // real start fen
 
 			return "r3kr2/pppbP2p/2n1pn2/1Bb2pB1/3P4/N1P2N2/PP3PPP/R2QK2R w KQq - 20 11";
