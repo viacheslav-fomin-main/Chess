@@ -424,7 +424,7 @@ public static class Board {
 		return ((currentGamestate&1) == 1);
 	}
 
-	static void DebugGameState(ushort state) {
+	public static void DebugGameState(ushort state) {
 		UnityEngine.Debug.Log ("state " + state);
 		bool whiteToMove = (state & 1) != 0;
 		bool w00 = (state & 1<<1) != 0;

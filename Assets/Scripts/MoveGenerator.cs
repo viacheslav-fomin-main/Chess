@@ -31,11 +31,11 @@ public class MoveGenerator {
 		if (!pseudolegalMode) {
 
 			for (int i =0; i <= 127; i ++) {
-				int possibleKingIndex = (moveColour == 1)?i:127-i; // white king most likely on lower half of board, black king most likely on upper half
+				int possibleKingIndex = (moveColour == 1) ? i : 127 - i; // white king most likely on lower half of board, black king most likely on upper half
 				if ((possibleKingIndex & 8) != 0) { // don't look at indices which are not on the real board
 					continue;
 				}
-				if (Board.boardArray[possibleKingIndex] == Board.kingCode + moveColour) {
+				if (Board.boardArray [possibleKingIndex] == Board.kingCode + moveColour) {
 					kingSquareIndex = possibleKingIndex;
 					break;
 				}
@@ -43,9 +43,9 @@ public class MoveGenerator {
 		}
 
 		if (capturesOnly) {
-			GenerateCaptureMoves();
+			GenerateCaptureMoves ();
 		} else {
-			GenerateAllMoves();
+			GenerateAllMoves ();
 		}
 
 		return moves;
@@ -116,6 +116,10 @@ public class MoveGenerator {
 				else if (movePieceType == Board.pawnCode) {
 					int pawnDirection = (moveColour == 1)?1:-1;
 					moveToIndex = moveFromIndex + pawnDirection*16;
+					if (moveToIndex<0 || moveToIndex >= Board.boardArray.Length) {
+						Board.DebugGameState(Board.currentGamestate);
+						UnityEngine.Debug.Log("Pawn error: move to: " + moveToIndex + "  from: " + moveFromIndex + "  dir: " + pawnDirection);
+					}
 					if (Board.boardArray[moveToIndex] == 0) { // square in front of pawn is unnocupied
 						CreatePawnMove(moveFromIndex,moveToIndex); // regular pawn move
 

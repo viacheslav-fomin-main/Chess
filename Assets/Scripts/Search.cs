@@ -17,6 +17,8 @@ public class Search {
 	/// Stat variables
 	public int nodesSearched;
 	public int breakCount;
+
+	int quiescenceScore;
 	
 	public void StartSearch() {
 		nodesSearched = 0;
@@ -57,6 +59,8 @@ public class Search {
 		if (depth == 0) {
 			nodesSearched ++;
 			return Evaluate();
+			QuiescenceSearch(int.MinValue,int.MaxValue,!isWhite,true);
+			return quiescenceScore;
 		}
 
 		int value = int.MinValue;
@@ -107,8 +111,70 @@ public class Search {
 		return value;
 	}
 
+	int QuiescenceSearch(int alpha, int beta, bool isWhite, bool topLevel) {
+		List<ushort> captureMoves = GetOrderedCaptures ();
+
+		if (captureMoves.Count == 0) {
+			nodesSearched ++;
+			int evaluation = Evaluate();
+			if (topLevel) {
+				quiescenceScore = evaluation;
+			}
+			return Evaluate();
+		}
+		
+		int value = int.MinValue;
+		if (isWhite) { // white is trying to attain the highest evaluation possible
+			
+			for (int i =0; i < captureMoves.Count; i ++) {
+				Board.MakeMove(captureMoves[i]);
+				value = Math.Max(value,QuiescenceSearch(alpha, beta, false, false));
+				alpha = Math.Max(alpha, value);
+				Board.UnmakeMove(captureMoves[i]);
+				
+				if(topLevel && findingMoveForWhite) { // has searched full depth and is now looking at top layer of moves to select the best
+					if (value>quiescenceScore) {
+						quiescenceScore = value;;
+					}
+				}
+				
+				if (beta <= alpha) { // break
+					breakCount++;
+					break;
+				}
+			}
+			return value;
+		}
+		
+		// black is trying to obtain the lowest evaluation possible
+		value = int.MaxValue;
+		for (int i =0; i < captureMoves.Count; i ++) {
+			Board.MakeMove(captureMoves[i]);
+			value = Math.Min(value,QuiescenceSearch(alpha, beta, false, true));
+			beta = Math.Min(beta, value);
+			Board.UnmakeMove(captureMoves[i]);
+
+			if(topLevel && !findingMoveForWhite) { // has searched full depth and is now looking at top layer of moves to select the best
+				if (value<quiescenceScore) {
+					quiescenceScore = value;;
+				}
+			}
+			
+			if (beta <= alpha) { // break
+				breakCount++;
+				break;
+			}
+		}
+		
+		return value;
+	}
+
 	public List<ushort> GetOrderedMoves() {
 		return moveGenerator.GetMoves (false, false); // TODO: order these moves in a clever way
+	}
+
+	public List<ushort> GetOrderedCaptures() {
+		return moveGenerator.GetMoves (true, false); // TODO: order these moves in a clever way
 	}
 
 	public int Evaluate() {

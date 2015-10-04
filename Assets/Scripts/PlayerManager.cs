@@ -45,7 +45,7 @@ public class PlayerManager : MonoBehaviour {
 		blackPlayer.Init (false);
 
 		whiteToPlay = Board.isWhiteToPlay ();
-		RequestAIResponse ();
+		RequestMove ();
 	}
 
 	void OnMove() {
@@ -54,11 +54,11 @@ public class PlayerManager : MonoBehaviour {
 		if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
 			Invoke ("RequestAIResponse", .25f); // force delay between moves when two AI are playing
 		} else {
-			RequestAIResponse();
+			RequestMove();
 		}
 	}
 
-	void RequestAIResponse() {
+	void RequestMove() {
 		if (whiteToPlay) {
 			whitePlayer.RequestMove ();
 		} else {

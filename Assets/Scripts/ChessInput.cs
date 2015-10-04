@@ -13,10 +13,7 @@ public class ChessInput : MonoBehaviour {
 	List<HumanPlayer> players = new List<HumanPlayer>();
 	bool active;
 
-	MoveGenerator moveGenerator;
-
 	void Start() {
-		moveGenerator = new MoveGenerator ();
 		viewCamera = Camera.main;
 	}
 
@@ -34,10 +31,18 @@ public class ChessInput : MonoBehaviour {
 
 		// Pick up piece
 		if (Input.GetKeyDown(KeyCode.Mouse0) && !holdingPiece) {
+			bool isPlayerMove = false;
+			for (int i =0; i < players.Count; i ++) {
+				if (players[i].isMyMove) {
+					isPlayerMove = true;
+					break;
+				}
+			}
+
 			holdingPiece = TryGetPieceUIAtPoint(mousePosition, out pieceHeld);
-			if (holdingPiece) {
+			if (holdingPiece && isPlayerMove) {
 				// highlight legal moves for held piece
-				List<ushort> legalMoves = moveGenerator.GetMoves(false,false);
+				List<ushort> legalMoves = HumanPlayer.legalMoves;
 				for (int i =0; i < legalMoves.Count; i ++) {
 					HighlightSquare(legalMoves[i], pieceHeld.algebraicCoordinate);
 

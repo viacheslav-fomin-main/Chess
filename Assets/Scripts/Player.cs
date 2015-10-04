@@ -33,7 +33,7 @@ public class Player {
 	public virtual void Update() {
 	}
 
-	protected bool isMyMove {
+	public bool isMyMove {
 		get {
 			return isWhite == Board.isWhiteToPlay ();
 		}
