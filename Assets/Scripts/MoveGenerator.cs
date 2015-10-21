@@ -21,11 +21,17 @@ public class MoveGenerator {
 	int kingSquareIndex;
 	int moveColour;
 
-	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal) {
+	public void SetMoveColour(int c) {
+		moveColour = c;
+	}
+
+	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal, bool autoSetMoveColour = true) {
 		pseudolegalMode = pseudolegal;
 		moves = new List<ushort> (128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
 
-		moveColour = Board.currentGamestate & 1;
+		if (autoSetMoveColour) {
+			moveColour = Board.currentGamestate & 1;
+		}
 
 		// find king index (to look for checks)
 		if (!pseudolegalMode) {

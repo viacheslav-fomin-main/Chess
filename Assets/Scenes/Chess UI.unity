@@ -413,7 +413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   whitePlayerType: 0
-  blackPlayerType: 0
+  blackPlayerType: 1
 --- !u!114 &71712210
 MonoBehaviour:
   m_ObjectHideFlags: 0

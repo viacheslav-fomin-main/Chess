@@ -35,7 +35,7 @@ public class Player {
 
 	public bool isMyMove {
 		get {
-			return isWhite == Board.isWhiteToPlay ();
+			return isWhite == Board.IsWhiteToPlay ();
 		}
 	}
 

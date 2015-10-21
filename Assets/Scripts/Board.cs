@@ -58,7 +58,24 @@ public static class Board {
 		int y = index / 16;
 		return index - y * 8;
 	}
-	
+
+	/// Returns rank (from 1-8) given a 128-based index
+	public static int RankFrom128(int index) {
+		return index / 16 + 1;
+	}
+
+	/// Returns file (from 1-8) given a 128-based index
+	public static int FileFrom128(int index) {
+		return index % 16 + 1;
+	}
+
+	public static bool WhiteHasCastlingRights() {
+		return (currentGamestate & 6) != 0;
+	}
+
+	public static bool BlackHasCastlingRights() {
+		return (currentGamestate & 24) != 0;
+	}
 	
 	/// Undo the previous move
 	public static void UnmakeMove (ushort move, bool updateUI = false)
@@ -423,7 +440,7 @@ public static class Board {
 		
 	}
 	
-	public static bool isWhiteToPlay() {
+	public static bool IsWhiteToPlay() {
 		return ((currentGamestate&1) == 1);
 	}
 	

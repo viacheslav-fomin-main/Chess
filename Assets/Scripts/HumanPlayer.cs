@@ -28,7 +28,7 @@ public class HumanPlayer : Player {
 	/// Makes the move after confirming that it is legal
 	/// </summary>
 	public void TryMakeMove(string algebraicMove) {
-		if (isWhite == Board.isWhiteToPlay()) {
+		if (isWhite == Board.IsWhiteToPlay()) {
 
 			for (int i = 0; i < legalMoves.Count; i ++) {
 				int moveFromIndex = legalMoves[i] & 127;

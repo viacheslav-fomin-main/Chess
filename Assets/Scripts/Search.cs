@@ -27,7 +27,7 @@ public class Search {
 		finishedSearch = false;
 
 		moveGenerator = new MoveGenerator ();
-		findingMoveForWhite = Board.isWhiteToPlay ();
+		findingMoveForWhite = Board.IsWhiteToPlay ();
 
 		Thread searchThread = new Thread (Iterate);
 		searchThread.Start ();
@@ -36,7 +36,8 @@ public class Search {
 
 
 	void Iterate() {
-		for (int i =1; i < 5; i ++) {
+		int depth = 4;
+		for (int i =depth; i <= depth; i ++) {
 			searchDepth = i;
 			bestScoreThisIteration = (findingMoveForWhite)?int.MinValue:int.MaxValue;
 
@@ -52,15 +53,15 @@ public class Search {
 
 		List<ushort> moves = GetOrderedMoves ();
 		if (moves.Count == 0) {
-			return ((isWhite)?-1:1) * 10000*depth; // if no moves available, side has been checkmated. Return best score for opponent. Checkmating sooner (higher depth) is rewarded.
+			return ((isWhite)?-1:1) * (10000000+depth); // if no moves available, side has been checkmated. Return best score for opponent. Checkmating sooner (higher depth) is rewarded.
 		}
 
 
 		if (depth == 0) {
 			nodesSearched ++;
 			return Evaluate();
-			QuiescenceSearch(int.MinValue,int.MaxValue,!isWhite,true);
-			return quiescenceScore;
+			//QuiescenceSearch(int.MinValue,int.MaxValue,!isWhite,true);
+			//return quiescenceScore;
 		}
 
 		int value = int.MinValue;
@@ -150,7 +151,7 @@ public class Search {
 		value = int.MaxValue;
 		for (int i =0; i < captureMoves.Count; i ++) {
 			Board.MakeMove(captureMoves[i]);
-			value = Math.Min(value,QuiescenceSearch(alpha, beta, false, true));
+			value = Math.Min(value,QuiescenceSearch(alpha, beta, true, false));
 			beta = Math.Min(beta, value);
 			Board.UnmakeMove(captureMoves[i]);
 

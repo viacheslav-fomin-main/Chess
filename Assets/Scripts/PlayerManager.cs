@@ -44,7 +44,7 @@ public class PlayerManager : MonoBehaviour {
 		whitePlayer.Init (true);
 		blackPlayer.Init (false);
 
-		whiteToPlay = Board.isWhiteToPlay ();
+		whiteToPlay = Board.IsWhiteToPlay ();
 		RequestMove ();
 	}
 
