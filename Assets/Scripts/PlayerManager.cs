@@ -52,13 +52,24 @@ public class PlayerManager : MonoBehaviour {
 		whiteToPlay = !whiteToPlay;
 
 		if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
-			Invoke ("RequestAIResponse", .25f); // force delay between moves when two AI are playing
+			StartCoroutine(RequestMoveCoroutine(.15f)); // force delay between moves when two AI are playing
 		} else {
 			RequestMove();
+			//StartCoroutine(RequestMoveCoroutine(0));
 		}
 	}
 
 	void RequestMove() {
+		if (whiteToPlay) {
+			whitePlayer.RequestMove ();
+		} else {
+			blackPlayer.RequestMove ();
+		}
+	}
+
+	
+	IEnumerator RequestMoveCoroutine(float delay) {
+		yield return new WaitForSeconds (delay);
 		if (whiteToPlay) {
 			whitePlayer.RequestMove ();
 		} else {

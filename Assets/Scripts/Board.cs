@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System;
 
 public static class Board {
-
+	
 	public static bool debugMode;
-
+	
 	// Piece type codes:
 	// to represent colour, a 1 can be added to make the piece white.
 	public const int pawnCode = 2;
@@ -13,68 +13,71 @@ public static class Board {
 	public const int bishopCode = 8;
 	public const int queenCode = 10;
 	public const int kingCode = 12;
-
+	
+	public const int whiteCode = 1;
+	public const int blackCode = 0;
+	
 	static int[] pieceCodeArray = new int[]{queenCode,rookCode,knightCode, bishopCode, pawnCode, kingCode}; // (this order puts pawn-promotable pieces first)
-
+	
 	// Corner indices of chessboard
 	const int a1 = 0;
 	const int a8 = 112;
 	const int h1 = 7;
 	const int h8 = 119;
-
+	
 	public static Dictionary<int,char> pieceNameDictionary = new Dictionary<int, char> ();
-
+	
 	/// Board array of piece codes.
 	/// Note that colour information is included in the codes.
 	public static int[] boardArray;
 	/// Board array representing colour of pieces. (0=black, 1=white, -1=vacant)
 	public static int[] boardColourArray;
-
+	
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
-
+	
 	public static ushort currentGamestate {
 		get {
 			return gameStateHistory.Peek ();
 		}
 	}
-
+	
 	public static int GetPiece(int squareIndex) {
 		return boardArray [squareIndex];
 	}
-
+	
 	public static int GetPiece(int x, int y) {
 		return boardArray[y * 8 + x];
 	}
-
+	
 	public static int Convert64to128(int index) {
 		int y = index / 8;
 		return index + y * 8;
 	}
-
+	
 	public static int Convert128to64(int index) {
 		int y = index / 16;
 		return index - y * 8;
 	}
-
-
+	
+	
 	/// Undo the previous move
 	public static void UnmakeMove (ushort move, bool updateUI = false)
 	{
 		ushort gamestateBeforeUndo = gameStateHistory.Pop (); // return to previous game state. currentGamestate now refers to the state after the undo
-
+		
 		int colourToMove = currentGamestate & 1;
 		int moveFromIndex = move & 127;
 		int moveToIndex = (move >> 7) & 127;
 		int movePieceCode = boardArray [moveToIndex];
 		int capturePieceCode = (gamestateBeforeUndo >> 9) & 15;
-
+		
 		// Update board
 		boardArray [moveFromIndex] = movePieceCode;
 		boardArray [moveToIndex] = capturePieceCode;
 		// Update colour board
 		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
 		SetColourBoard (moveToIndex, capturePieceCode);
-
+		
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
 			if (moveToIndex == 2) { // white 0-0-0
 				boardArray [0] = rookCode + 1;
@@ -106,39 +109,39 @@ public static class Board {
 		else if ((gamestateBeforeUndo & 1 << 14) != 0) { // move was promotion; replace promoted piece with pawn
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
 		}
-
+		
 		if (debugMode) {
 			DebugGameState (currentGamestate);
 		}
-
+		
 		if (updateUI) {
 			UpdatePhysicalBoard ();
 		}
 	}
-
-
+	
+	
 	/// Update all boards to reflect latest move
 	/// Note that move is assumed to be legal
 	public static void MakeMove (ushort move, bool updateUI = false)
 	{
 		ushort newGamestate = (ushort)(currentGamestate & 31); // only copy side to move and castling rights from current gamestate (0000000000011111)
-
+		
 		int colourToMove = currentGamestate & 1;
 		int moveFromIndex = move & 127;
 		int moveToIndex = (move >> 7) & 127;
 		int promotionPieceIndex = (move >> 14) & 3; // 0 = queen, 1 = rook, 2 = knight, 3 = bishop
-
+		
 		int movePieceCode = boardArray [moveFromIndex]; // get move piece code
 		int movePieceType = movePieceCode & ~1; // get move piece type code (no colour info)
 		int capturedPieceCode = boardArray [moveToIndex]; // get capture piece code
 		int promotionPieceCode = 0; // this assigned later if promotion occurs
-
+		
 		// Update board with new move:
 		boardArray [moveToIndex] = movePieceCode;
 		boardArray [moveFromIndex] = 0;
 		// Update colour board
 		SetColourBoard(moveToIndex,moveFromIndex, colourToMove);
-
+		
 		// Pawn moves
 		if (movePieceType == pawnCode) {
 			if (moveToIndex >= 112 || moveToIndex <= 7) { // pawn has reached first/eighth rank
@@ -164,16 +167,16 @@ public static class Board {
 		// Castling
 		if ((currentGamestate & 30) != 0) { // if castling options still exist for either side (0000000000011110)
 			if (movePieceType == kingCode) { // moving king immediately removes all castling rights
-
+				
 				if (colourToMove == 1) {
 					newGamestate &= 65529; // remove white castling privileges (1111111111111001)
 				} else {
 					newGamestate &= 65511; // remove black castling privileges (1111111111100111)
 				}
-
+				
 				if (Math.Abs(moveToIndex-moveFromIndex) == 2) { // king is castling this move
 					newGamestate |= 1<<15; // record in game state that king castled this move
-
+					
 					if (moveToIndex == 2) { // white 0-0-0
 						boardArray [3] = rookCode + 1;
 						boardArray [0] = 0;
@@ -196,7 +199,7 @@ public static class Board {
 					}
 				}
 			}
-
+			
 			// if a rook moves, or is captured, castling rights on that side of the board will be removed
 			if (moveFromIndex == h1 || moveToIndex == h1) {
 				newGamestate &= 65533; // white kingside castle no longer allowed (1111111111111101)
@@ -211,20 +214,20 @@ public static class Board {
 				newGamestate &= 65519; // black queenside no longer allowed (1111111111101111)
 			}
 		}
-
+		
 		newGamestate ^= 1; // toggle side to move
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
-
+		
 		if (debugMode) {
 			DebugGameState (newGamestate);
 		}
-
+		
 		if (updateUI) {
 			UpdatePhysicalBoard();
 		}
 	}
-
+	
 	static void UpdatePhysicalBoard() {
 		ChessUI.instance.AutoUpdate ();
 	}
@@ -234,7 +237,7 @@ public static class Board {
 		if (!isInitialized) {
 			isInitialized = true;
 			pieceNameDictionary.Add (0, ' ');
-
+			
 			pieceNameDictionary.Add (pawnCode, 'p');
 			pieceNameDictionary.Add (rookCode, 'r');
 			pieceNameDictionary.Add (knightCode, 'n');
@@ -250,7 +253,7 @@ public static class Board {
 			pieceNameDictionary.Add (kingCode + 1, 'K');
 		}
 	}
-
+	
 	static void SetColourBoard(int setIndex, int pieceCode) {
 		if (pieceCode == 0) {
 			boardColourArray [setIndex] = -1;
@@ -258,7 +261,7 @@ public static class Board {
 			boardColourArray [setIndex] = pieceCode & 1;
 		}
 	}
-
+	
 	static void SetColourBoard(int setIndex, int clearIndex, int colour) {
 		boardColourArray [clearIndex] = -1;
 		boardColourArray[setIndex] = colour;
@@ -269,17 +272,17 @@ public static class Board {
 	public static void SetPositionFromFen (string fen)
 	{
 		Init ();
-
+		
 		boardArray = new int[128];
 		boardColourArray = new int[128];
 		for (int i = 0; i <= 127; i ++) { // clear colour array (all values to -1)
 			boardColourArray[i] = -1;
 		}
-
+		
 		ushort initialGameState = 0;
-
+		
 		string[] fenSections = fen.Split (' ');
-
+		
 		string pieceChars = "rnbqkpRNBQKP";
 		string pieceFen = fenSections [0];
 		int boardX = 0;
@@ -292,7 +295,7 @@ public static class Board {
 				int squareIndex = boardY*8 + boardX;
 				bool white = char.IsUpper(key);
 				int pieceCode = ColourCode(white);
-
+				
 				switch (key.ToString().ToUpper().ToCharArray()[0]) {
 				case 'R':
 					pieceCode |= rookCode;
@@ -313,10 +316,10 @@ public static class Board {
 					pieceCode |= pawnCode;
 					break;
 				}
-
+				
 				boardArray[Convert64to128(squareIndex)] = pieceCode;
 				SetColourBoard(Convert64to128(squareIndex),Convert64to128(squareIndex), pieceCode & 1);
-
+				
 				boardX ++;
 			} else if (key == '/') {
 				boardX = 0;
@@ -328,19 +331,19 @@ public static class Board {
 				}
 			}
 		}
-
+		
 		// Game state
 		string sideToMove = fenSections [1];
 		string castlingRights = fenSections [2];
 		string enPassantCaptureSquare = fenSections [3];
 		//string halfMoveNumber = fenSections [4];
-	//	string fullMoveNumber = fenSections [5];
-
+		//	string fullMoveNumber = fenSections [5];
+		
 		// Set side to move (bit 1)
 		if (sideToMove == "w") {
 			initialGameState += 1;
 		}
-
+		
 		// Set castling rights (bits 2,3,4,5)
 		for (int i = 0; i < castlingRights.Length; i ++) {
 			switch (castlingRights [i]) {
@@ -358,18 +361,18 @@ public static class Board {
 				break;
 			}
 		}
-
+		
 		// En passant capture file (bits 6,7,8,9)
 		if (enPassantCaptureSquare [0] != '-') {
 			initialGameState += (ushort)(Definitions.fileNames.IndexOf (enPassantCaptureSquare [0]) << 5);
 		}
-
+		
 		gameStateHistory.Clear ();
 		gameStateHistory.Push (initialGameState);
-
+		
 		UpdatePhysicalBoard ();
 	}
-
+	
 	static void MakeTestMove() {
 		return;
 		/*
@@ -417,13 +420,46 @@ public static class Board {
 		UnmakeMove (moveB, true);
 		UnmakeMove (moveA, true);
 		*/
-
+		
 	}
-
+	
 	public static bool isWhiteToPlay() {
 		return ((currentGamestate&1) == 1);
 	}
-
+	
+	public static void PrintBoard(string optionalHeader = "") {
+		string boardString = "";
+		string colourString = "";
+		
+		if (optionalHeader != "") {
+			optionalHeader += ":\n";
+		}
+		
+		for (int y = 7; y>=0; y--) {
+			for (int x = 0; x < 8; x ++) {
+				int i = Board.Convert64to128(y*8+x);
+				// pieces
+				int code = boardArray [i];
+				if (code == 0) {
+					boardString += " # ";
+				}
+				else {
+					boardString += " " +pieceNameDictionary [code] + " ";
+				}
+				
+				// colour
+				string colString = (boardColourArray[i] == 0)?" B ":" W ";
+				if (boardColourArray[i] == -1) {
+					colString = " # ";
+				}
+				colourString += colString;
+			}
+			boardString += "\n";
+			colourString += "\n";
+		}
+		UnityEngine.Debug.Log (optionalHeader + boardString);
+	}
+	
 	public static void DebugGameState(ushort state) {
 		UnityEngine.Debug.Log ("state " + state);
 		bool whiteToMove = (state & 1) != 0;
@@ -439,11 +475,11 @@ public static class Board {
 		UnityEngine.Debug.Log ("ep file: " + epFile);
 		string boardString = "";
 		string colourString = "";
-
+		
 		if (capturedPieceCode != 0) {
 			UnityEngine.Debug.Log ("Captured piece: " + pieceNameDictionary [capturedPieceCode]);
 		}
-
+		
 		for (int y = 7; y>=0; y--) {
 			for (int x = 0; x < 8; x ++) {
 				int i = Board.Convert64to128(y*8+x);
@@ -455,7 +491,7 @@ public static class Board {
 				else {
 					boardString += " " +pieceNameDictionary [code] + " ";
 				}
-			
+				
 				// colour
 				string colString = (boardColourArray[i] == 0)?" B ":" W ";
 				if (boardColourArray[i] == -1) {
@@ -470,11 +506,11 @@ public static class Board {
 		UnityEngine.Debug.Log (colourString);
 		UnityEngine.Debug.Log ("########################### \n");
 	}
-
-
+	
+	
 	static int ColourCode(bool white) {
 		return (white) ? 1 : 0;
 	}
 	
-
+	
 }
