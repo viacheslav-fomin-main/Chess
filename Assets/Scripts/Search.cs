@@ -37,7 +37,7 @@ public class Search {
 
 	void Iterate() {
 		int depth = 4;
-		for (int i =depth; i <= depth; i ++) {
+		for (int i = 1; i <= depth; i ++) {
 			searchDepth = i;
 			bestScoreThisIteration = (findingMoveForWhite)?int.MinValue:int.MaxValue;
 

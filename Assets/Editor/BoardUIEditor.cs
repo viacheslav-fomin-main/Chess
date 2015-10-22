@@ -18,12 +18,10 @@ public class BoardUIEditor : Editor {
 	}
 
 	public override void OnInspectorGUI() {
-		DrawDefaultInspector ();
 
 		ChessUI chessUI = target as ChessUI;
 
-		if (editorHasReset) {
-			editorHasReset = false;
+		if (DrawDefaultInspector ()) {
 			chessUI.CreateBoardUI();
 		}
 
