@@ -16,6 +16,8 @@ public static class Board {
 	
 	public const int whiteCode = 1;
 	public const int blackCode = 0;
+
+	public static ulong zobristKey;
 	
 	static int[] pieceCodeArray = new int[]{queenCode,rookCode,knightCode, bishopCode, pawnCode, kingCode}; // (this order puts pawn-promotable pieces first)
 	
@@ -86,14 +88,23 @@ public static class Board {
 		int moveFromIndex = move & 127;
 		int moveToIndex = (move >> 7) & 127;
 		int movePieceCode = boardArray [moveToIndex];
-		int capturePieceCode = (gamestateBeforeUndo >> 9) & 15;
+		int movePieceType = movePieceCode & ~1;
+		int capturedPieceCode = (gamestateBeforeUndo >> 9) & 15;
 		
 		// Update board
 		boardArray [moveFromIndex] = movePieceCode;
-		boardArray [moveToIndex] = capturePieceCode;
+		boardArray [moveToIndex] = capturedPieceCode;
 		// Update colour board
 		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
-		SetColourBoard (moveToIndex, capturePieceCode);
+		SetColourBoard (moveToIndex, capturedPieceCode);
+
+		// Update zobrist key
+		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // place piece at new square
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove piece from old square
+		if (capturedPieceCode != 0) {
+			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+		}
 		
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
 			if (moveToIndex == 2) { // white 0-0-0
@@ -158,6 +169,14 @@ public static class Board {
 		boardArray [moveFromIndex] = 0;
 		// Update colour board
 		SetColourBoard(moveToIndex,moveFromIndex, colourToMove);
+
+		// Update zobrist key
+		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // place piece at new square
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove piece from old square
+		if (capturedPieceCode != 0) {
+			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+		}
 		
 		// Pawn moves
 		if (movePieceType == pawnCode) {
@@ -166,6 +185,9 @@ public static class Board {
 				promotionPieceIndex = move >> 14 & 3;
 				promotionPieceCode = pieceCodeArray [promotionPieceIndex] + colourToMove;
 				boardArray [moveToIndex] = promotionPieceCode; // add promoted piece to the board
+
+				zobristKey ^= ZobristKey.piecesArray[movePieceType >> 1, colourToMove,moveToIndex]; // remove pawn from zobrist key
+				zobristKey ^= ZobristKey.piecesArray[(pieceCodeArray [promotionPieceIndex] >> 1)-1, colourToMove,moveToIndex]; // add promoted piece to zobrist key
 			}
 			else if (Math.Abs (moveToIndex - moveFromIndex) == 32) { // pawn advances two squares
 				int pawnFile = moveToIndex % 8 + 1; // file is stored from 1-8 (because 0 is reserved for no ep square)
@@ -178,6 +200,8 @@ public static class Board {
 					int epCapturedPawnIndex = moveToIndex - 16 * dir; // index of pawn being captured en passant
 					boardArray [epCapturedPawnIndex] = 0; // remove captured pawn from board
 					boardColourArray [epCapturedPawnIndex] = -1;
+
+					zobristKey ^= ZobristKey.piecesArray[(pawnCode >> 1)-1, 1-colourToMove,epCapturedPawnIndex]; // remove ep captured pawn from zobrist key
 				}
 			}
 		} 
@@ -193,27 +217,45 @@ public static class Board {
 				
 				if (Math.Abs(moveToIndex-moveFromIndex) == 2) { // king is castling this move
 					newGamestate |= 1<<15; // record in game state that king castled this move
-					
+					int rookFromIndex = 0;
+					int rookToIndex = 0;
+
 					if (moveToIndex == 2) { // white 0-0-0
-						boardArray [3] = rookCode + 1;
-						boardArray [0] = 0;
-						SetColourBoard(3,0, colourToMove); 
+						rookToIndex = 3;
+						rookFromIndex = 0;
+
+						//boardArray [3] = rookCode + 1;
+						//boardArray [0] = 0;
+						//SetColourBoard(3,0, colourToMove); 
 					}
 					else if (moveToIndex == 6) { // white 0-0
-						boardArray [5] = rookCode + 1;
-						boardArray [7] = 0;
-						SetColourBoard(5,7, colourToMove); 
+						rookToIndex = 5;
+						rookFromIndex = 7;
+
+						//boardArray [5] = rookCode + 1;
+						//boardArray [7] = 0;
+						//SetColourBoard(5,7, colourToMove); 
 					}
 					else if (moveToIndex == 114) { // black 0-0-0
-						boardArray [115] = rookCode;
-						boardArray [112] = 0;
-						SetColourBoard(115,112, colourToMove); 
+						rookToIndex = 115;
+						rookFromIndex = 112;
+
+						//boardArray [115] = rookCode;
+						//boardArray [112] = 0;
+						//SetColourBoard(115,112, colourToMove); 
 					}
 					else if (moveToIndex == 118) { // black 0-0
-						boardArray [117] = rookCode;
-						boardArray [119] = 0;
-						SetColourBoard(117,119, colourToMove); 
+						rookToIndex = 117;
+						rookFromIndex = 119;
+
+						//boardArray [117] = rookCode;
+						//boardArray [119] = 0;
+						//SetColourBoard(117,119, colourToMove); 
 					}
+
+					boardArray[rookToIndex] = rookCode + colourToMove;
+					boardArray[rookFromIndex] = 0;
+					SetColourBoard(rookToIndex,rookFromIndex,colourToMove);
 				}
 			}
 			
@@ -388,6 +430,8 @@ public static class Board {
 		gameStateHistory.Push (initialGameState);
 		
 		UpdatePhysicalBoard ();
+
+		zobristKey = ZobristKey.GetZobristKey ();
 	}
 	
 	static void MakeTestMove() {

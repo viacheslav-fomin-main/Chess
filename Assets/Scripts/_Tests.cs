@@ -6,21 +6,6 @@ public class _Tests : MonoBehaviour {
 	
 
 	void Start () {
-
-		Heap heap = new Heap (10);
-
-		heap.Add (1, -5);
-		heap.Add (2, 1);
-		heap.Add (3, 4);
-		heap.Add (4, 10);
-		heap.Add (5, 99);
-		heap.Add (6, 123);
-		int movec = heap.Count;
-		for (int i = 0; i < movec; i ++) {
-			//print(heap.evals[i]);
-			print(heap.RemoveFirst());
-		}
-
 		/*
 		int moveFromIndex = 4;
 		int moveToIndex = 19;
@@ -70,6 +55,18 @@ public class _Tests : MonoBehaviour {
 
 
 
+	}
+
+	void Update() {
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			ulong z1 = ZobristKey.GetZobristKey();
+			if (z1 == Board.zobristKey) {
+				print ("Match: " + z1);
+			}
+			else {
+				print ("Conflict: " + z1 + "\n" + "board v: " + Board.zobristKey);
+			}
+		}
 	}
 	
 

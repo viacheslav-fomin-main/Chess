@@ -4,9 +4,8 @@ using System;
 
 public class Heap {
 	
-	public ushort[] moves;
-	public short[] evals;
-	
+	ushort[] moves;
+	short[] evals;
 	ushort currentItemCount;
 	
 	public Heap(int maxHeapSize) {
