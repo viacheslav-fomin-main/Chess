@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 public class _Tests : MonoBehaviour {
 
-	MoveGenerator gen = new MoveGenerator();
-	ushort move = (ushort)4097;
 
 	void Start () {
+
+		//GetComponent<PlayerManager>().re
 	//	ZobristKey.Init ();
 		//Board.SetPositionFromFen (Definitions.startFen,false);
 
@@ -63,11 +63,22 @@ public class _Tests : MonoBehaviour {
 
 	}
 
-	void Update() {
-		if (Input.GetKeyDown (KeyCode.Space)) {
+	public static void ZobristCheck() {
+		ulong z1 = ZobristKey.GetZobristKey();
+		
+		if (z1 != Board.zobristKey) {
+			Debug.Log ("Conflict: " + z1 + "\n" + "board v: " + Board.zobristKey);
+			Debug.Break();
+		}
+	}
 
-		//	Board.MakeMove(move,false);
-			//Board.UnmakeMove(move,false);
+	void Update() {
+
+		
+	
+
+		/*
+		if (Input.GetKeyDown (KeyCode.Space)) {
 
 			ulong z1 = ZobristKey.GetZobristKey();
 
@@ -78,6 +89,7 @@ public class _Tests : MonoBehaviour {
 				print ("Conflict: " + z1 + "\n" + "board v: " + Board.zobristKey);
 			}
 		}
+		*/
 	}
 	
 

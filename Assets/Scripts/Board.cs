@@ -103,9 +103,8 @@ public static class Board {
 		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // remove piece from old square
 		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // place piece at new square
 		if (capturedPieceCode != 0) {
-			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+			zobristKey ^= ZobristKey.piecesArray [((capturedPieceCode & ~1) >> 1) - 1, 1 - colourToMove, moveToIndex]; // remove captured piece
 		}
-
 		// remove old ep square from zobrist key
 		int epIndex = (gamestateBeforeUndo >> 5 & 15) -1;
 		if (epIndex != -1) {
@@ -117,28 +116,41 @@ public static class Board {
 		if (epIndex != -1) {
 			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 1)?80:32)];
 		}
+
+		// remove old castling rights from zobrist key
+		zobristKey ^= ZobristKey.castlingRightsWhite[(gamestateBeforeUndo >> 1) & 3];
+		zobristKey ^= ZobristKey.castlingRightsBlack[(gamestateBeforeUndo >> 3) & 3];
+		
+		// add new castling rights to zobrist key
+		zobristKey ^= ZobristKey.castlingRightsWhite[(currentGamestate >> 1) & 3];
+		zobristKey ^= ZobristKey.castlingRightsBlack[(currentGamestate >> 3) & 3];
 		
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
+			int rookFromIndex = 0;
+			int rookToIndex = 0;
 			if (moveToIndex == 2) { // white 0-0-0
-				boardArray [0] = rookCode + 1;
-				boardArray [3] = 0;
-				SetColourBoard(0,3, colourToMove); 
+				rookFromIndex = 3;
+				rookToIndex = 0;
 			}
 			else if (moveToIndex == 6) { // white 0-0
-				boardArray [7] = rookCode + 1;
-				boardArray [5] = 0;
-				SetColourBoard(7,5, colourToMove); 
+				rookFromIndex = 5;
+				rookToIndex = 7;
 			}
 			else if (moveToIndex == 114) { // black 0-0-0
-				boardArray [112] = rookCode;
-				boardArray [115] = 0;
-				SetColourBoard(112,115, colourToMove); 
+				rookFromIndex = 115;
+				rookToIndex = 112;
 			}
 			else if (moveToIndex == 118) { // black 0-0
-				boardArray [119] = rookCode;
-				boardArray [117] = 0;
-				SetColourBoard(119,117, colourToMove); 
+				rookFromIndex = 117;
+				rookToIndex = 119;
 			}
+
+			boardArray[rookFromIndex] = 0;
+			boardArray[rookToIndex] = rookCode + colourToMove;
+			SetColourBoard(rookToIndex,rookFromIndex, colourToMove);
+
+			zobristKey ^= ZobristKey.piecesArray[(rookCode>>1) - 1, colourToMove, rookFromIndex]; // remove rook from old square in zobrist key
+			zobristKey ^= ZobristKey.piecesArray[(rookCode>>1) - 1, colourToMove, rookToIndex]; // add rook to new square in zobrist key
 		}
 		else if ((gamestateBeforeUndo & 1 << 13) != 0) { // pawn captured en passant; put opponent-coloured pawn back on ep capture square.
 			int dir = (colourToMove == 1) ? 1 : -1;
@@ -242,39 +254,26 @@ public static class Board {
 					if (moveToIndex == 2) { // white 0-0-0
 						rookToIndex = 3;
 						rookFromIndex = 0;
-
-						//boardArray [3] = rookCode + 1;
-						//boardArray [0] = 0;
-						//SetColourBoard(3,0, colourToMove); 
 					}
 					else if (moveToIndex == 6) { // white 0-0
 						rookToIndex = 5;
 						rookFromIndex = 7;
-
-						//boardArray [5] = rookCode + 1;
-						//boardArray [7] = 0;
-						//SetColourBoard(5,7, colourToMove); 
 					}
 					else if (moveToIndex == 114) { // black 0-0-0
 						rookToIndex = 115;
 						rookFromIndex = 112;
-
-						//boardArray [115] = rookCode;
-						//boardArray [112] = 0;
-						//SetColourBoard(115,112, colourToMove); 
 					}
 					else if (moveToIndex == 118) { // black 0-0
 						rookToIndex = 117;
 						rookFromIndex = 119;
-
-						//boardArray [117] = rookCode;
-						//boardArray [119] = 0;
-						//SetColourBoard(117,119, colourToMove); 
 					}
 
 					boardArray[rookToIndex] = rookCode + colourToMove;
 					boardArray[rookFromIndex] = 0;
 					SetColourBoard(rookToIndex,rookFromIndex,colourToMove);
+
+					zobristKey ^= ZobristKey.piecesArray[(rookCode>>1) - 1, colourToMove, rookFromIndex]; // remove rook from old square in zobrist key
+					zobristKey ^= ZobristKey.piecesArray[(rookCode>>1) - 1, colourToMove, rookToIndex]; // add rook to new square in zobrist key
 				}
 			}
 			
@@ -296,20 +295,23 @@ public static class Board {
 		// remove old ep square from zobrist key
 		int epIndex = (currentGamestate >> 5 & 15) -1;
 		if (epIndex != -1) {
-			//UnityEngine.Debug.Log("do: " + (epIndex + (((currentGamestate & 1) == 0)?80:32)));
-			
 			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 1)?80:32)];
 		}
-
 
 		// add new ep square to zobrist key
 		epIndex = (newGamestate >> 5 & 15) -1;
 		if (epIndex != -1) {
-			//UnityEngine.Debug.Log("do: " + (epIndex + (((currentGamestate & 1) == 0)?80:32)));
-			
 			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 0)?80:32)];
 		}
-		
+
+		// remove old castling rights from zobrist key
+		zobristKey ^= ZobristKey.castlingRightsWhite[(currentGamestate >> 1) & 3];
+		zobristKey ^= ZobristKey.castlingRightsBlack[(currentGamestate >> 3) & 3];
+
+		// add new castling rights to zobrist key
+		zobristKey ^= ZobristKey.castlingRightsWhite[(newGamestate >> 1) & 3];
+		zobristKey ^= ZobristKey.castlingRightsBlack[(newGamestate >> 3) & 3];
+
 		newGamestate ^= 1; // toggle side to move
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);

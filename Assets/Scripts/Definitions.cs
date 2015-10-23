@@ -8,7 +8,8 @@ public class Definitions {
 	
 	public static string startFen {
 		get {
-			return "rnbqkbnr/pPpppppp/8/8/8/8/1PPPPPPP/RNBQKBNR b KQkq -";
+			//return "r3k2r/p1pppppp/Pbnqbn2/8/8/1BNQN3/1PPPPPPP/R3K2R b KQkq -";
+			//return "rnbqkbnr/pPpppppp/8/8/8/8/1PPPPPPP/RNBQKBNR b KQkq -";
 			//return "8/2nk1b2/8/8/8/3K4/8/8 w - -";
 			//return "rnbqkbnr/pppppp2/7p/6p1/8/4P2P/PPPPP1P1/RNBQKBNR w KQkq -";
 			//return "rnbqkbnr/pppp3p/4p3/4Ppp1/6p1/2P5/PP1P1PPP/RNBQKBNR w KQkq f6 6 4";

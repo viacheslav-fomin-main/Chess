@@ -14,7 +14,6 @@ public static class ZobristKey {
 	static Random prng = new Random(seed);
 
 	public static void Init() {
-		//Random prng = new Random (seed);
 
 		for (int squareIndex = 0; squareIndex < 120; squareIndex ++) {
 			for (int pieceIndex = 0; pieceIndex < 6; pieceIndex ++) {

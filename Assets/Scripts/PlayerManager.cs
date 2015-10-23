@@ -57,6 +57,8 @@ public class PlayerManager : MonoBehaviour {
 			RequestMove();
 			//StartCoroutine(RequestMoveCoroutine(0));
 		}
+
+		//_Tests.ZobristCheck ();
 	}
 
 	void RequestMove() {
