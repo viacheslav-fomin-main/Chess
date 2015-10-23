@@ -3,9 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class _Tests : MonoBehaviour {
-	
+
+	MoveGenerator gen = new MoveGenerator();
+	ushort move = (ushort)4097;
 
 	void Start () {
+	//	ZobristKey.Init ();
+		//Board.SetPositionFromFen (Definitions.startFen,false);
+
+
 		/*
 		int moveFromIndex = 4;
 		int moveToIndex = 19;
@@ -59,7 +65,12 @@ public class _Tests : MonoBehaviour {
 
 	void Update() {
 		if (Input.GetKeyDown (KeyCode.Space)) {
+
+		//	Board.MakeMove(move,false);
+			//Board.UnmakeMove(move,false);
+
 			ulong z1 = ZobristKey.GetZobristKey();
+
 			if (z1 == Board.zobristKey) {
 				print ("Match: " + z1);
 			}

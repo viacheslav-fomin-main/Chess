@@ -90,7 +90,7 @@ public static class Board {
 		int movePieceCode = boardArray [moveToIndex];
 		int movePieceType = movePieceCode & ~1;
 		int capturedPieceCode = (gamestateBeforeUndo >> 9) & 15;
-		
+
 		// Update board
 		boardArray [moveFromIndex] = movePieceCode;
 		boardArray [moveToIndex] = capturedPieceCode;
@@ -100,10 +100,22 @@ public static class Board {
 
 		// Update zobrist key
 		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
-		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // place piece at new square
-		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove piece from old square
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // remove piece from old square
+		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // place piece at new square
 		if (capturedPieceCode != 0) {
 			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+		}
+
+		// remove old ep square from zobrist key
+		int epIndex = (gamestateBeforeUndo >> 5 & 15) -1;
+		if (epIndex != -1) {
+			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 0)?80:32)];
+		}
+
+		// add new ep square to zobrist key
+		epIndex = (currentGamestate >> 5 & 15) -1;
+		if (epIndex != -1) {
+			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 1)?80:32)];
 		}
 		
 		if ((gamestateBeforeUndo & 1 << 15) != 0) { // move was castles; move rook back to original square
@@ -133,9 +145,13 @@ public static class Board {
 			int epCapturedPawnIndex = moveToIndex - 16 * dir; // index of pawn that was captured en passant
 			boardArray [epCapturedPawnIndex] = pawnCode + (1 - colourToMove); // add ep captured pawn back onto board
 			boardColourArray [epCapturedPawnIndex] = (1 - colourToMove);
+
+			zobristKey ^= ZobristKey.piecesArray[(pawnCode>>1)-1, 1-colourToMove, epCapturedPawnIndex]; // add captured ep pawn to zobrist key
 		}
 		else if ((gamestateBeforeUndo & 1 << 14) != 0) { // move was promotion; replace promoted piece with pawn
 			boardArray [moveFromIndex] = pawnCode + colourToMove;
+			zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove promoted piece from zobrist key
+			zobristKey ^= ZobristKey.piecesArray[(pawnCode>>1)-1,colourToMove, moveFromIndex]; // add the demoted pawn to zobrist key
 		}
 		
 		if (debugMode) {
@@ -163,7 +179,8 @@ public static class Board {
 		int movePieceType = movePieceCode & ~1; // get move piece type code (no colour info)
 		int capturedPieceCode = boardArray [moveToIndex]; // get capture piece code
 		int promotionPieceCode = 0; // this assigned later if promotion occurs
-		
+
+
 		// Update board with new move:
 		boardArray [moveToIndex] = movePieceCode;
 		boardArray [moveFromIndex] = 0;
@@ -174,6 +191,7 @@ public static class Board {
 		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
 		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // place piece at new square
 		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove piece from old square
+
 		if (capturedPieceCode != 0) {
 			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
 		}
@@ -186,12 +204,13 @@ public static class Board {
 				promotionPieceCode = pieceCodeArray [promotionPieceIndex] + colourToMove;
 				boardArray [moveToIndex] = promotionPieceCode; // add promoted piece to the board
 
-				zobristKey ^= ZobristKey.piecesArray[movePieceType >> 1, colourToMove,moveToIndex]; // remove pawn from zobrist key
+				zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1)-1, colourToMove,moveToIndex]; // remove pawn from zobrist key
 				zobristKey ^= ZobristKey.piecesArray[(pieceCodeArray [promotionPieceIndex] >> 1)-1, colourToMove,moveToIndex]; // add promoted piece to zobrist key
 			}
 			else if (Math.Abs (moveToIndex - moveFromIndex) == 32) { // pawn advances two squares
 				int pawnFile = moveToIndex % 8 + 1; // file is stored from 1-8 (because 0 is reserved for no ep square)
 				newGamestate += (ushort)(pawnFile << 5); // add ep capture file to game state
+
 			}
 			else if (Math.Abs (moveToIndex - moveFromIndex) != 16) { // pawn capture
 				if (capturedPieceCode == 0) { // seemingly capturing empty square, thus en passant capture has occurred
@@ -273,6 +292,23 @@ public static class Board {
 				newGamestate &= 65519; // black queenside no longer allowed (1111111111101111)
 			}
 		}
+
+		// remove old ep square from zobrist key
+		int epIndex = (currentGamestate >> 5 & 15) -1;
+		if (epIndex != -1) {
+			//UnityEngine.Debug.Log("do: " + (epIndex + (((currentGamestate & 1) == 0)?80:32)));
+			
+			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 1)?80:32)];
+		}
+
+
+		// add new ep square to zobrist key
+		epIndex = (newGamestate >> 5 & 15) -1;
+		if (epIndex != -1) {
+			//UnityEngine.Debug.Log("do: " + (epIndex + (((currentGamestate & 1) == 0)?80:32)));
+			
+			zobristKey ^= ZobristKey.enPassantSquare[epIndex + (((currentGamestate & 1) == 0)?80:32)];
+		}
 		
 		newGamestate ^= 1; // toggle side to move
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
@@ -328,7 +364,7 @@ public static class Board {
 	
 	/// Sets the board position from a given fen string
 	/// Note that this will clear the board history
-	public static void SetPositionFromFen (string fen)
+	public static void SetPositionFromFen (string fen, bool updateBoardUI = true)
 	{
 		Init ();
 		
@@ -428,10 +464,13 @@ public static class Board {
 		
 		gameStateHistory.Clear ();
 		gameStateHistory.Push (initialGameState);
-		
-		UpdatePhysicalBoard ();
 
 		zobristKey = ZobristKey.GetZobristKey ();
+
+		if (updateBoardUI) {
+			UpdatePhysicalBoard ();
+		}
+
 	}
 	
 	static void MakeTestMove() {

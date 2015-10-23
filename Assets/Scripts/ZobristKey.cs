@@ -42,7 +42,10 @@ public static class ZobristKey {
 			}
 		}
 
-		zobristKey ^= enPassantSquare[(Board.currentGamestate >> 5 & 15) -1 + (((Board.currentGamestate & 1) == 0)?80:32)];
+		int epIndex = (Board.currentGamestate >> 5 & 15) -1;
+		if (epIndex != -1) {
+			zobristKey ^= enPassantSquare[epIndex + (((Board.currentGamestate & 1) == 1)?80:32)];
+		}
 
 		if ((Board.currentGamestate & 1) == 0) {
 			zobristKey ^= sideToMove;
@@ -52,10 +55,6 @@ public static class ZobristKey {
 		zobristKey ^= castlingRightsBlack[(Board.currentGamestate >> 3) & 3];
 
 		return zobristKey;
-	}
-
-	public static ulong UpdateZobristKey(ulong hash, ushort move) {
-		return 0ul;
 	}
 
 	public static ulong PsuedoRandomNumber() {
