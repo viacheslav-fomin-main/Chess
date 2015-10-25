@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class PlayerManager : MonoBehaviour {
 
@@ -10,9 +11,11 @@ public class PlayerManager : MonoBehaviour {
 	Player whitePlayer;
 	Player blackPlayer;
 
-	bool whiteToPlay = true;
+	[HideInInspector]
+	public bool whiteToPlay;
 
 	ChessInput boardInput;
+	public event Action<bool> OnMoveMade;
 
 	public void CreatePlayers() {
 		boardInput = GetComponent<ChessInput> ();
@@ -56,6 +59,10 @@ public class PlayerManager : MonoBehaviour {
 		} else {
 			RequestMove();
 			//StartCoroutine(RequestMoveCoroutine(0));
+		}
+
+		if (OnMoveMade != null) {
+			OnMoveMade(!whiteToPlay);
 		}
 
 		//_Tests.ZobristCheck ();

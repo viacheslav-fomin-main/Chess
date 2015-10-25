@@ -25,7 +25,7 @@ public class MoveGenerator {
 		moveColour = c;
 	}
 
-	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal, bool autoSetMoveColour = true) {
+	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal, bool autoSetMoveColour = true) { // autoset move colour means move colour will be taken from current position. Otherwise can be custom set using SetMoveColour method
 		pseudolegalMode = pseudolegal;
 		moves = new List<ushort> (128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
 

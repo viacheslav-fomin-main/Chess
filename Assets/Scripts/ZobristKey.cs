@@ -3,7 +3,7 @@ using System.Collections;
 
 public static class ZobristKey {
 
-	const int seed = 60425270;
+	const int seed = 1982734;
 
 	public static ulong[,,] piecesArray = new ulong[6,2,120]; // piece type, side to move, square index (0x88 board)
 	public static ulong[] castlingRightsWhite = new ulong[4]; // kingside only, queenside only, both sides, no castling rights

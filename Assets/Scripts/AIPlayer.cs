@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class AIPlayer : Player {
@@ -16,8 +17,17 @@ public class AIPlayer : Player {
 	{
 
 		base.RequestMove ();
-		moveRequested = true;
-		searcher.StartSearch ();
+
+		if (OpeningBookReader.IsInBook ()) {
+			Random prng = new Random();
+
+			List<ushort> bookMoves = OpeningBookReader.GetBookMoves();
+			MakeMove(bookMoves[prng.Next(0,bookMoves.Count)]);
+
+		} else {
+			moveRequested = true;
+			searcher.StartSearch ();
+		}
 	}
 	
 

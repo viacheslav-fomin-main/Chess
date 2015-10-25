@@ -19,7 +19,7 @@ public static class Board {
 
 	public static ulong zobristKey;
 	
-	static int[] pieceCodeArray = new int[]{queenCode,rookCode,knightCode, bishopCode, pawnCode, kingCode}; // (this order puts pawn-promotable pieces first)
+	public static int[] pieceCodeArray = new int[]{queenCode,rookCode,knightCode, bishopCode, pawnCode, kingCode}; // (this order puts pawn-promotable pieces first)
 	
 	// Corner indices of chessboard
 	const int a1 = 0;
