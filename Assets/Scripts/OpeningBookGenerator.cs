@@ -5,34 +5,75 @@ using System;
 
 public static class OpeningBookGenerator {
 
-	const int openingCutoffPly = 30; // stop adding moves to book after cutoff
+	const int openingCutoffPly = 20; // stop adding moves to book after cutoff
+	const int minGameLengthPly = 0; // game must have lasted at least this many ply in order to be considered for opening book (to prevent quick draw lines + opening disasters)
 	static Dictionary<ulong, List<ushort>> book = new Dictionary<ulong, List<ushort>> ();
 
 	public static void GenerateBook() {
-
-		string[] games = Directory.GetFiles("Assets/Opening Book/PGNs/", "*.pgn");
+		//return;
+		string[] files = Directory.GetFiles("Assets/Opening Book/PGNs/", "*.pgn");
 		List<ulong> keys = new List<ulong> ();
 
 		// Read pgns and convert to opening book dictionary
-		for (int i =0; i < games.Length; i ++) {
+		for (int fileIndex =0; fileIndex < files.Length; fileIndex ++) {
 
-			StreamReader reader = new StreamReader (games[i]);
-			string pgn = reader.ReadToEnd();
+			StreamReader reader = new StreamReader (files[fileIndex]);
+			string gameFile = reader.ReadToEnd();
 			reader.Close();
 
-			List<string> moveStrings = PGNReader.MoveStringsFromPGN(pgn);
-			List<ushort> moves = PGNReader.MovesFromPGN(pgn);
-			Board.SetPositionFromFen(Definitions.startFen);
+			List<string> pgns = new List<string>();
+			//UnityEngine.Debug.Log("Reading file " +files[fileIndex]);
 
-			for (int j =0; j < Math.Min(moves.Count, openingCutoffPly); j ++) {
-				if (!book.ContainsKey(Board.zobristKey)) {
-					keys.Add(Board.zobristKey);
-					book.Add(Board.zobristKey, new List<ushort>());
+			bool commentSection = false;
+			bool readingPGN = false;
+			int pgnIndex = -1;
+			for (int charIndex = 0; charIndex < gameFile.Length; charIndex ++) {
+				if (gameFile[charIndex] == '[') {
+					commentSection = true;
+					readingPGN = false;
+				}
+				else if (gameFile[charIndex] == ']') {
+					commentSection = false;
+				}
+				else if (!commentSection) {
+					if (!readingPGN && gameFile[charIndex] == '1') {
+						readingPGN = true;
+						pgns.Add("");
+						pgnIndex ++;
+					}
+					if (readingPGN) {
+						pgns[pgnIndex] += gameFile[charIndex] + "";
+					}
+				}
+			}
+
+	
+			for (int i = 0; i < pgns.Count; i ++) {
+				string pgn = Sanitize(pgns[i]);
+				if (pgn.Split('.').Length * 2 < minGameLengthPly) {
+					continue;
 				}
 
-				book[Board.zobristKey].Add(moves[j]);
-				Board.MakeMove(moves[j]);
+				//UnityEngine.Debug.Log("fine " + pgns[i].Length + "  " + pgns[i]);
+				//UnityEngine.Debug.Log(files[fileIndex] + " game index: " + i + "  total: " + pgns.Count + "\n" + pgns[i]);
+				List<string> moveStrings = PGNReader.MoveStringsFromPGN(pgn);
+				List<ushort> moves = PGNReader.MovesFromPGN(pgn);
+				Board.SetPositionFromFen(Definitions.startFen);
+
+				for (int j =0; j < Math.Min(moves.Count, openingCutoffPly); j ++) {
+					if (!book.ContainsKey(Board.zobristKey)) {
+						keys.Add(Board.zobristKey);
+						book.Add(Board.zobristKey, new List<ushort>());
+					}
+					if (!book[Board.zobristKey].Contains(moves[j])) {
+						book[Board.zobristKey].Add(moves[j]);
+						//UnityEngine.Debug.Log("Move count: " + j + " " + moveStrings[j] + "  " + moves[j]);
+					}
+					Board.MakeMove(moves[j]);
+				}
 			}
+
+
 		}
 
 		// Write book to file
@@ -49,7 +90,15 @@ public static class OpeningBookGenerator {
 		}
 
 		writer.Close ();
-
+	}
+	
+	static string Sanitize(string pgn) { // makes pgn format friendly for reader
+		string[] sections = pgn.Split ('\n');
+		string result = "";
+		for (int i = 0; i < sections.Length; i ++) {
+			result += sections[i].Replace("\n","") + " ";
+		}
+		return result;
 	}
 
 }

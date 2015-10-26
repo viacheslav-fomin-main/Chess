@@ -8,7 +8,7 @@ public class PGNReader {
 		List<ushort> allMoves = new List<ushort> ();
 
 		MoveGenerator moveGen = new MoveGenerator ();
-		Board.SetPositionFromFen (Definitions.startFen, true);
+		Board.SetPositionFromFen (Definitions.startFen);
 
 		for (int i =0; i < moveStrings.Count; i++) {
 			string moveString = moveStrings[i];
@@ -98,7 +98,7 @@ public class PGNReader {
 
 			}
 			allMoves.Add(move);
-			Board.MakeMove(move,false);
+			Board.MakeMove(move);
 		}
 
 		return allMoves;

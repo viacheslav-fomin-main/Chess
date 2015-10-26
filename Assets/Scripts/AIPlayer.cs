@@ -22,7 +22,10 @@ public class AIPlayer : Player {
 			Random prng = new Random();
 
 			List<ushort> bookMoves = OpeningBookReader.GetBookMoves();
-			MakeMove(bookMoves[prng.Next(0,bookMoves.Count)]);
+			ushort randomBookMove = bookMoves[prng.Next(0,bookMoves.Count)];
+			if (moveGenerator.GetMoves(false,false).Contains(randomBookMove)) { // ensure book move is legal (possible for zobrist keys to have hashed wrong position)
+				MakeMove(randomBookMove);
+			}
 
 		} else {
 			moveRequested = true;

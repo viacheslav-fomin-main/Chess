@@ -8,7 +8,7 @@ public class _Tests : MonoBehaviour {
 
 	void Start () {
 
-	//	StartCoroutine ("A");
+		//StartCoroutine ("A");
 
 		//GetComponent<PlayerManager>().re
 	//	ZobristKey.Init ();
@@ -74,24 +74,24 @@ public class _Tests : MonoBehaviour {
 			Debug.Break();
 		}
 	}
-	/*
+
 	IEnumerator A() {
 		yield return new WaitForSeconds (.5f);
 		List<string> moveStrings = PGNReader.MoveStringsFromPGN (pgn);
-		List<ushort> moves = PGNReader.MovesFromMoveStrings (moveStrings);
+		List<ushort> moves = PGNReader.MovesFromPGN (pgn);
 		
 		print ("move count: " + moves.Count);
 		print ("string count: " + moveStrings.Count);
 		Board.SetPositionFromFen (Definitions.startFen);
 
 		for (int i =0; i < moves.Count; i ++) {
-			//Board.MakeMove(moves[i],true);
-			print(moveStrings[i] + ":  " + moves[i]);
-			yield return new WaitForSeconds(.3f);
+			Board.MakeMove(moves[i],true);
+			//print(moveStrings[i] + ":  " + moves[i]);
+			yield return new WaitForSeconds(.1f);
 		}
 
 	}
-*/
+
 	void Update() {
 
 		

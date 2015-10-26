@@ -10,11 +10,15 @@ public class GameManager : MonoBehaviour {
 
 	float secondsRemainingWhite;
 	float secondsRemainingBlack;
+
+	public bool regenerateOpeningBook;
 	
 	void Start () {
 		ZobristKey.Init ();
 		Evaluation.Init ();
-		OpeningBookGenerator.GenerateBook ();
+		if (regenerateOpeningBook) {
+			OpeningBookGenerator.GenerateBook ();
+		}
 		OpeningBookReader.Init ();
 
 		playerManager = GetComponent<PlayerManager> ();
