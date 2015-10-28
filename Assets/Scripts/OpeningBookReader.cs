@@ -9,7 +9,7 @@ public static class OpeningBookReader {
 
 	public static void Init() {
 		book = new Dictionary<ulong, List<ushort>> ();
-		StreamReader reader = new StreamReader ("Assets/Opening Book/Openings.txt");
+		StreamReader reader = new StreamReader ("Assets/Opening Book/Book.txt");
 	
 		while (reader.Peek() != -1) {
 			string line = reader.ReadLine();

@@ -20,9 +20,11 @@ public class Player {
 
 
 	protected virtual void MakeMove(ushort move) {
-		Board.MakeMove (move,true);
-		if (OnMove != null) {
-			OnMove();
+		if (move != 0) {
+			Board.MakeMove (move, true);
+			if (OnMove != null) {
+				OnMove ();
+			}
 		}
 	}
 

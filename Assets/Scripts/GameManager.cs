@@ -12,6 +12,18 @@ public class GameManager : MonoBehaviour {
 	float secondsRemainingBlack;
 
 	public bool regenerateOpeningBook;
+	public bool useOpeningBook;
+
+	static GameManager myInstance;
+
+	public static GameManager instance {
+		get {
+			if (myInstance == null) {
+				myInstance = FindObjectOfType<GameManager>();
+			}
+			return myInstance;
+		}
+	}
 	
 	void Start () {
 		ZobristKey.Init ();

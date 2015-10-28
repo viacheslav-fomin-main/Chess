@@ -1,4 +1,3 @@
-//hashed
 using System.Collections.Generic;
 using System;
 using System.Threading;
@@ -55,7 +54,7 @@ public class Search {
 		}
 		
 		finishedSearch = true;
-		UnityEngine.Debug.Log ("hash hits: " + debug_hashHits);
+		//UnityEngine.Debug.Log ("hash hits: " + debug_hashHits);
 	}
 
 	
@@ -77,17 +76,7 @@ public class Search {
 			
 			for (int i =0; i < moves.Count; i ++) {
 				Board.MakeMove (moves [i]);
-				if (transpositionTable.ContainsKey(Board.zobristKey)) {
-					debug_hashHits ++;
-					alpha = Math.Max(alpha, transpositionTable[Board.zobristKey]);
-				}
-				else {
-					alpha = Math.Max (alpha, AlphaBetaSearch (plyRemaining - 1, alpha, beta, false));
-					if (useHash) {
-						//transpositionTable.Add(Board.zobristKey, alpha);
-					}
-				}
-				
+				alpha = Math.Max (alpha, AlphaBetaSearch (plyRemaining - 1, alpha, beta, false));
 				Board.UnmakeMove (moves [i]);
 				
 				if (plyRemaining == searchDepth) { // has searched full depth and is now looking at top layer of moves to select the best
@@ -107,16 +96,7 @@ public class Search {
 			// black is trying to obtain the lowest evaluation possible
 			for (int i =0; i < moves.Count; i ++) {
 				Board.MakeMove (moves [i]);
-				if (transpositionTable.ContainsKey(Board.zobristKey)) {
-					debug_hashHits ++;
-					beta = Math.Min(beta, transpositionTable[Board.zobristKey]);
-				}
-				else {
-					beta = Math.Min (beta, AlphaBetaSearch (plyRemaining - 1, alpha, beta, true));
-					if (useHash) {
-						//transpositionTable.Add(Board.zobristKey, beta);
-					}
-				}
+				beta = Math.Min (beta, AlphaBetaSearch (plyRemaining - 1, alpha, beta, true));
 				Board.UnmakeMove (moves [i]);
 				
 				if (plyRemaining == searchDepth) { // has searched full depth and is now looking at top layer of moves to select the best

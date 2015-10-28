@@ -321,10 +321,15 @@ public static class Board {
 		}
 		
 		if (updateUI) {
-			UpdatePhysicalBoard();
+			UpdatePhysicalBoard(moveFromIndex, moveToIndex);
 		}
 	}
 	
+	static void UpdatePhysicalBoard(int moveFromIndex, int moveToIndex) {
+		ChessUI.instance.AutoUpdate ();
+		ChessUI.instance.HighlightMove (moveFromIndex, moveToIndex);
+	}
+
 	static void UpdatePhysicalBoard() {
 		ChessUI.instance.AutoUpdate ();
 	}

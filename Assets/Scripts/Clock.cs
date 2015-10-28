@@ -26,8 +26,10 @@ public class Clock : MonoBehaviour {
 	void Update() {
 		if (playerManager.whiteToPlay) {
 			secondsRemainingWhite -= Time.deltaTime;
+			secondsRemainingWhite = Mathf.Clamp(secondsRemainingWhite,0,int.MaxValue);
 		} else {
 			secondsRemainingBlack -= Time.deltaTime;
+			secondsRemainingBlack = Mathf.Clamp(secondsRemainingBlack,0,int.MaxValue);
 	
 		}
 

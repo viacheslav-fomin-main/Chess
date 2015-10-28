@@ -19,6 +19,9 @@ public class ChessUI : MonoBehaviour {
 
 	public Color lightColour;
 	public Color darkColour;
+	public Color moveFromHighlightColour;
+	public Color moveToHighlightColour;
+	public Color legalMoveHighlight;
 
 	public Transform lightSquare;
 	public Transform darkSquare;
@@ -102,7 +105,17 @@ public class ChessUI : MonoBehaviour {
 		int squareX = Definitions.fileNames.IndexOf (squaresToHighlight [0]);
 		int squareY = Definitions.rankNames.IndexOf (squaresToHighlight [1]);
 
-		squares [squareX, squareY].material.color = Color.green;
+		squares [squareX, squareY].material.color = legalMoveHighlight;
+	}
+
+	public void HighlightMove(int fromIndex, int toIndex) {
+		int fromX = Board.FileFrom128 (fromIndex) - 1;
+		int fromY = Board.RankFrom128 (fromIndex) - 1;
+		int toX = Board.FileFrom128 (toIndex) - 1;
+		int toY = Board.RankFrom128 (toIndex) - 1;
+		// highlight move squares;
+		squares [fromX, fromY].material.color = moveFromHighlightColour;
+		squares [toX, toY].material.color = moveToHighlightColour;
 	}
 
 	public void ResetHighlights() {
@@ -114,6 +127,8 @@ public class ChessUI : MonoBehaviour {
 	/// Note: all moves are assumed legal and proving non-legal input may result in errors/unexpected behaviour
 	/// </summary>
 	public void MakeMove(string move) {
+	
+
 		int fromX = Definitions.fileNames.IndexOf (move [0]);
 		int fromY = Definitions.rankNames.IndexOf (move [1]);
 		int toX = Definitions.fileNames.IndexOf (move [2]);
@@ -152,9 +167,14 @@ public class ChessUI : MonoBehaviour {
 
 
 		UpdateBoardUI ();
+
+		// highlight move squares;
+		squares [fromX, fromY].material.color = moveFromHighlightColour;
+		squares [toX, toY].material.color = moveToHighlightColour;
 	}
 
 	public void AutoUpdate() {
+		ResetHighlights();
 		for (int y = 0; y < 8; y ++) {
 			for (int x = 0; x < 8; x ++) {
 				int index = Board.Convert64to128(y*8 + x);

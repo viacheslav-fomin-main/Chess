@@ -2,6 +2,9 @@
 using System.Collections;
 using System;
 
+/// <summary>
+/// Heap for sorting moves. Move with the highest eval is kept at the top
+/// </summary>
 public class Heap {
 	
 	ushort[] moves;
@@ -29,6 +32,18 @@ public class Heap {
 		
 		SortDown(0);
 		return firstItem;
+	}
+
+	public void UpdateEval(int index, short newEval) {
+		short originalEval = evals [index];
+		evals [index] = newEval;
+
+		if (originalEval < newEval) {
+			SortUp (index);
+		} else if (originalEval > newEval) {
+			SortDown(index);
+		}
+
 	}
 	
 	

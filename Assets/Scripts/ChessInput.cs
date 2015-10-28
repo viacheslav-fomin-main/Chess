@@ -53,7 +53,7 @@ public class ChessInput : MonoBehaviour {
 		// Let go of piece
 		else if (Input.GetKeyUp (KeyCode.Mouse0) && holdingPiece) {
 			PieceUI dropSquare;
-		
+			ChessUI.instance.ResetHighlights();
 			if (TryGetPieceUIAtPoint(mousePosition, out dropSquare)) {
 				string algebraicMove = pieceHeld.algebraicCoordinate + dropSquare.algebraicCoordinate;
 				for (int i = 0; i < players.Count; i ++) {
@@ -61,7 +61,7 @@ public class ChessInput : MonoBehaviour {
 				}
 			}
 
-			ChessUI.instance.ResetHighlights();
+
 			pieceHeld.Release();
 			holdingPiece = false;
 		}
