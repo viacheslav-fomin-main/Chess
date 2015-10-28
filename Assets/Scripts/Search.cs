@@ -43,6 +43,7 @@ public class Search {
 	
 	
 	void Iterate() {
+		Timer.Start ("Move Time");
 		debug_hashHits = 0;
 		int depth = 4;
 		for (int i = depth; i <= depth; i ++) {
@@ -54,6 +55,8 @@ public class Search {
 		}
 		
 		finishedSearch = true;
+		Timer.Print ("Move Time");
+		Timer.Reset ("Move Time");
 		//UnityEngine.Debug.Log ("hash hits: " + debug_hashHits);
 	}
 

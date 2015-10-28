@@ -34,6 +34,9 @@ public static class Board {
 	public static int[] boardArray;
 	/// Board array representing colour of pieces. (0=black, 1=white, -1=vacant)
 	public static int[] boardColourArray;
+
+	public static int blackKingIndex;
+	public static int whiteKingIndex;
 	
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 	
@@ -84,8 +87,8 @@ public static class Board {
 	{
 		ushort gamestateBeforeUndo = gameStateHistory.Pop (); // return to previous game state. currentGamestate now refers to the state after the undo
 		
-		int colourToMove = currentGamestate & 1;
-		int moveFromIndex = move & 127;
+		int colourToMove = currentGamestate & 1; // the colour of player whose move is being undone
+		int moveFromIndex = move & 127; // the square the piece originally moved FROM (now moving TO this square since in undo mode)
 		int moveToIndex = (move >> 7) & 127;
 		int movePieceCode = boardArray [moveToIndex];
 		int movePieceType = movePieceCode & ~1;
@@ -98,6 +101,16 @@ public static class Board {
 		SetColourBoard(moveFromIndex,moveToIndex, colourToMove); 
 		SetColourBoard (moveToIndex, capturedPieceCode);
 
+		// update king positions
+		if (movePieceType == kingCode) {
+			if (colourToMove == 1) {
+				whiteKingIndex = moveFromIndex;
+			}
+			else {
+				blackKingIndex = moveFromIndex;
+			}
+		}
+
 		// Update zobrist key
 		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
 		zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveToIndex]; // remove piece from old square
@@ -105,6 +118,7 @@ public static class Board {
 		if (capturedPieceCode != 0) {
 			zobristKey ^= ZobristKey.piecesArray [((capturedPieceCode & ~1) >> 1) - 1, 1 - colourToMove, moveToIndex]; // remove captured piece
 		}
+
 		// remove old ep square from zobrist key
 		int epIndex = (gamestateBeforeUndo >> 5 & 15) -1;
 		if (epIndex != -1) {
@@ -206,6 +220,16 @@ public static class Board {
 
 		if (capturedPieceCode != 0) {
 			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+		}
+
+		// update king positions
+		if (movePieceType == kingCode) {
+			if (colourToMove == 1) {
+				whiteKingIndex = moveToIndex;
+			}
+			else {
+				blackKingIndex = moveToIndex;
+			}
 		}
 		
 		// Pawn moves
@@ -394,7 +418,8 @@ public static class Board {
 			char key = pieceFen [i];
 			
 			if (pieceChars.Contains (key.ToString ())) {
-				int squareIndex = boardY*8 + boardX;
+				int squareIndex64 = boardY*8 + boardX;
+				int squareIndex128 = Convert64to128(squareIndex64);
 				bool white = char.IsUpper(key);
 				int pieceCode = ColourCode(white);
 				
@@ -413,14 +438,20 @@ public static class Board {
 					break;
 				case 'K':
 					pieceCode |= kingCode;
+					if (white) {
+						whiteKingIndex = squareIndex128;
+					}
+					else {
+						blackKingIndex = squareIndex128;
+					}
 					break;
 				case 'P':
 					pieceCode |= pawnCode;
 					break;
 				}
 				
-				boardArray[Convert64to128(squareIndex)] = pieceCode;
-				SetColourBoard(Convert64to128(squareIndex),Convert64to128(squareIndex), pieceCode & 1);
+				boardArray[squareIndex128] = pieceCode;
+				SetColourBoard(squareIndex128,squareIndex128, pieceCode & 1);
 				
 				boardX ++;
 			} else if (key == '/') {

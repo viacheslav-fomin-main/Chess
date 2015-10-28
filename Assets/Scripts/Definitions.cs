@@ -9,6 +9,7 @@ public class Definitions {
 	
 	public static string gameStartFen {
 		get {
+			return "r1b3nr/pppppppp/2nbq3/8/6k1/Q4N2/PPPPPPPP/RNB1KB1R w KQkq -";
 			return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 		}

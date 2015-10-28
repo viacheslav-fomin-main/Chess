@@ -16,16 +16,25 @@ public class Heap {
 		evals = new short[maxHeapSize];
 	}
 	
-	public void Add(ushort move, short eval) {
+	public void Add(ushort move, short eval = 0) {
 		moves[currentItemCount] = move;
 		evals [currentItemCount] = eval;
 		
 		SortUp(currentItemCount);
 		currentItemCount++;
 	}
+
+	public bool Contains(ushort move) {
+		for (int i = 0; i < moves.Length; i ++) {
+			if (moves[i] == move) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
-	public short RemoveFirst() {
-		short firstItem = evals[0];
+	public ushort RemoveFirst() {
+		ushort firstItem = moves[0];
 		currentItemCount--;
 		moves[0] = moves[currentItemCount];
 		evals [0] = evals [currentItemCount];

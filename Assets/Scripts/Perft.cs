@@ -52,9 +52,7 @@ public class Perft : MonoBehaviour {
 
 	int RunTest() {
 		nodeSearchCount = 0;
-		MoveGenerator.captures = 0;
-		MoveGenerator.castles = 0;
-		MoveGenerator.promotions = 0;
+
 
 		Board.SetPositionFromFen(fen);
 		Timer.Start("Perft");
@@ -62,7 +60,6 @@ public class Perft : MonoBehaviour {
 		Timer.Stop("Perft");
 		Timer.Print("Perft");
 		print("Leaf nodes at depth " + searchDepth + ": " + nodeSearchCount);
-		print ("Captures: " + MoveGenerator.captures + "  Castles: " + MoveGenerator.castles + "   Promotions: " + MoveGenerator.promotions);
 		return nodeSearchCount;
 	}
 
@@ -71,11 +68,8 @@ public class Perft : MonoBehaviour {
 			nodeSearchCount ++;
 			return;
 		}
-		if (depth == 1) {
-			MoveGenerator.trackStats = true;
-		}
+	
 		List<ushort> moves = moveGenerator.GetMoves (false, false);
-		MoveGenerator.trackStats = false;
 		for (int i =0; i < moves.Count; i ++) {
 			Board.MakeMove(moves[i]);
 			PerfTest(depth-1);

@@ -8,6 +8,7 @@ public static class OpeningBookReader {
 	static Dictionary<ulong, List<ushort>> book;
 
 	public static void Init() {
+
 		book = new Dictionary<ulong, List<ushort>> ();
 		StreamReader reader = new StreamReader ("Assets/Opening Book/Book.txt");
 	
