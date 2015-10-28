@@ -6,8 +6,8 @@ using System;
 /// Heap for sorting moves. Move with the highest eval is kept at the top
 /// </summary>
 public class Heap {
-	
-	ushort[] moves;
+
+	public ushort[] moves;
 	short[] evals;
 	ushort currentItemCount;
 	

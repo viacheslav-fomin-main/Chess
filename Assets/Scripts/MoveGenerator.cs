@@ -16,7 +16,7 @@ public class MoveGenerator {
 	/// If true, move generator will not worry about checks when generating moves (ignores pins etc)
 	/// This can be used for faster move gen if king captures are going to be rejected in search
 	bool pseudolegalMode;
-	List<ushort> moves;
+	Heap moves;
 	HashSet <int> enemyAttackHash;
 	
 	int friendlyKingIndex;
@@ -31,9 +31,9 @@ public class MoveGenerator {
 		moveColour = c;
 	}
 	
-	public List<ushort> GetMoves(bool capturesOnly, bool pseudolegal, bool autoSetMoveColour = true) { // autoset move colour means move colour will be taken from current position. Otherwise can be custom set using SetMoveColour method
+	public Heap GetMoves(bool capturesOnly, bool pseudolegal, bool autoSetMoveColour = true) { // autoset move colour means move colour will be taken from current position. Otherwise can be custom set using SetMoveColour method
 		pseudolegalMode = pseudolegal;
-		moves = new List<ushort> (128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
+		moves = new Heap(128); // I imagine that most positions will yield less than 128 psuedolegal moves. (The greatest known number of legal moves available in a position is 218)
 		
 		if (autoSetMoveColour) {
 			moveColour = Board.currentGamestate & 1;

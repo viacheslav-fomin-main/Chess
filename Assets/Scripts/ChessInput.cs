@@ -42,8 +42,8 @@ public class ChessInput : MonoBehaviour {
 			holdingPiece = TryGetPieceUIAtPoint(mousePosition, out pieceHeld);
 			if (holdingPiece && isPlayerMove) {
 				// highlight legal moves for held piece
-				List<ushort> legalMoves = HumanPlayer.legalMoves;
-				for (int i =0; i < legalMoves.Count; i ++) {
+				ushort[] legalMoves = HumanPlayer.legalMoves;
+				for (int i =0; i < legalMoves.Length; i ++) {
 					HighlightSquare(legalMoves[i], pieceHeld.algebraicCoordinate);
 
 				}

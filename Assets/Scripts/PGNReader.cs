@@ -17,7 +17,7 @@ public class PGNReader {
 			moveString = moveString.Replace("#",""); // remove mate symbol
 			moveString = moveString.Replace("x",""); // remove capture symbol
 
-			List<ushort> movesInPosition = moveGen.GetMoves(false,false);
+			IList<ushort> movesInPosition = moveGen.GetMoves(false,false) as IList<ushort>;
 			ushort move = 0;
 			for (int j =0; j < movesInPosition.Count; j ++) {
 				move = movesInPosition[j];

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class HumanPlayer : Player {
 
 	public static Stack<ushort> movesMade = new Stack<ushort>();
-	public static List<ushort> legalMoves;
+	public static ushort[] legalMoves;
 
 	public override void Init (bool white) {
 		base.Init (white);
@@ -30,7 +30,7 @@ public class HumanPlayer : Player {
 	public void TryMakeMove(string algebraicMove) {
 		if (isWhite == Board.IsWhiteToPlay()) {
 
-			for (int i = 0; i < legalMoves.Count; i ++) {
+			for (int i = 0; i < legalMoves.Length; i ++) {
 				int moveFromIndex = legalMoves[i] & 127;
 				int moveToIndex = (legalMoves[i] >> 7) & 127;
 				
@@ -56,7 +56,7 @@ public class HumanPlayer : Player {
 	public override void RequestMove ()
 	{
 		base.RequestMove ();
-		legalMoves = moveGenerator.GetMoves (false, false);
+		legalMoves = moveGenerator.GetMoves (false, false).moves;
 	}
 
 }

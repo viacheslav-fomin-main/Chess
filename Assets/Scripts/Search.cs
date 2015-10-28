@@ -62,9 +62,10 @@ public class Search {
 
 	
 	int AlphaBetaSearch(int plyRemaining, int alpha, int beta, bool isWhite) {
-		
-		List<ushort> moves = GetOrderedMoves ();
-		if (moves.Count == 0) {
+		Heap moveHeap = moveGenerator.GetMoves (false, false);
+		int count = moveHeap.Count;
+
+		if (moveHeap.Count == 0) {
 			return ((isWhite)?-1:1) * (10000000+plyRemaining); // if no moves available, side has been checkmated. Return best score for opponent. Checkmating sooner (higher depth) is rewarded.
 		}
 		
@@ -77,16 +78,16 @@ public class Search {
 		}
 		if (isWhite) { // white is trying to attain the highest evaluation possible
 			
-			for (int i =0; i < moves.Count; i ++) {
-				Board.MakeMove (moves [i]);
-
+			for (int i =0; i < count; i ++) {
+				ushort move = moveHeap.RemoveFirst();
+				Board.MakeMove (move);
 				alpha = Math.Max (alpha, AlphaBetaSearch (plyRemaining - 1, alpha, beta, false));
-				Board.UnmakeMove (moves [i]);
+				Board.UnmakeMove (move);
 				
 				if (plyRemaining == searchDepth) { // has searched full depth and is now looking at top layer of moves to select the best
 					if (alpha > bestScoreThisIteration) {
 						bestScoreThisIteration = alpha;
-						bestMoveThisIteration = moves [i];
+						bestMoveThisIteration = move;
 					}
 				}
 				
@@ -98,16 +99,16 @@ public class Search {
 			return alpha;
 		} else {
 			// black is trying to obtain the lowest evaluation possible
-			for (int i =0; i < moves.Count; i ++) {
-				Board.MakeMove (moves [i]);
-
+			for (int i =0; i < count; i ++) {
+				ushort move = moveHeap.RemoveFirst();
+				Board.MakeMove (move);
 				beta = Math.Min (beta, AlphaBetaSearch (plyRemaining - 1, alpha, beta, true));
-				Board.UnmakeMove (moves [i]);
+				Board.UnmakeMove (move);
 				
 				if (plyRemaining == searchDepth) { // has searched full depth and is now looking at top layer of moves to select the best
 					if (beta < bestScoreThisIteration) {
 						bestScoreThisIteration = beta;
-						bestMoveThisIteration = moves [i];
+						bestMoveThisIteration = move;
 					}
 				}
 				
@@ -122,10 +123,11 @@ public class Search {
 		
 		return 0;
 	}
-	
+
+	/*
 	int QuiescenceSearch(int alpha, int beta, bool isWhite, bool topLevel) {
-		List<ushort> captureMoves = GetOrderedCaptures ();
-		
+		SortedList<int, ushort>  captureMoves = moveGenerator.GetMoves (true, false);
+
 		if (captureMoves.Count == 0) {
 			nodesSearched ++;
 			int evaluation = Evaluate();
@@ -180,19 +182,10 @@ public class Search {
 		
 		return value;
 	}
-	
-	public List<ushort> GetOrderedMoves() {
-		return moveGenerator.GetMoves (false, false); // TODO: order these moves in a clever way
-	}
-	
-	public List<ushort> GetOrderedCaptures() {
-		return moveGenerator.GetMoves (true, false); // TODO: order these moves in a clever way
-	}
+*/
 	
 	public int Evaluate() {
 		return Evaluation.Evaluate ();
-		System.Random r = new Random ();
-		return r.Next(-500,500); // TODO: evaluate the current board position
 	}
 	
 }

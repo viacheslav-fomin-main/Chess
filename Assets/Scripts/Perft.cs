@@ -69,7 +69,7 @@ public class Perft : MonoBehaviour {
 			return;
 		}
 	
-		List<ushort> moves = moveGenerator.GetMoves (false, false);
+		IList<ushort> moves = moveGenerator.GetMoves (false, false) as IList<ushort>;
 		for (int i =0; i < moves.Count; i ++) {
 			Board.MakeMove(moves[i]);
 			PerfTest(depth-1);
