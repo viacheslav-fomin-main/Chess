@@ -36,8 +36,8 @@ public static class Evaluation {
 		int kingSafetyEval = 0;
 
 		// piece index vars (assigned when found to be used in later calculations)
-		int whiteKingSquareIndex = 0;
-		int blackKingSquareIndex = 0;
+		int whiteKingSquareIndex = -1;
+		int blackKingSquareIndex = -1;
 		List<int> whiteQueenIndices = new List<int> (2);
 		List<int> whiteRookIndices = new List<int> (2);
 		List<int> whiteKnightIndices = new List<int> (2);
@@ -103,6 +103,11 @@ public static class Evaluation {
 				}
 			}
 		}
+
+		if (whiteKingSquareIndex == -1) { // return best score for black if white's king has been captured (this may sometimes be allowed during alphabeta search for faster move generation)
+			//return int.MinValue;
+		}
+
 
 		// piece mobility
 		moveGenerator.SetMoveColour (1);

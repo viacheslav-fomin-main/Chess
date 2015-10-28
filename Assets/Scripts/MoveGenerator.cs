@@ -22,6 +22,7 @@ public class MoveGenerator {
 	int friendlyKingIndex;
 	int moveColour;
 	int opponentColour;
+
 	public static void Debug() {
 		UnityEngine.Debug.Log ("hash calls: " + hashCalls);
 	}
@@ -43,6 +44,7 @@ public class MoveGenerator {
 		
 		// Set enemy attack hash
 		enemyAttackHash = GetEnemyAttackHash ();
+
 
 		
 		if (capturesOnly) {
@@ -535,19 +537,22 @@ public class MoveGenerator {
 				return;
 			}
 			
-			if (isCastles) {
-				if (enemyAttackHash.Contains(castleThroughIndex)) { // cannot castle if castling through check
-					return;
-				}
-				if (enemyAttackHash.Contains(fromIndex)) { // cannot castle if currently in check
-					return;
-				}
-				if (trackStats) {
-					castles ++;
-				}
-				
-				
+		
+		}
+
+		if (isCastles) {
+
+			if (enemyAttackHash.Contains(castleThroughIndex)) { // cannot castle if castling through check
+				return;
 			}
+			if (enemyAttackHash.Contains(fromIndex)) { // cannot castle if currently in check
+				return;
+			}
+			if (trackStats) {
+				castles ++;
+			}
+			
+			
 		}
 		
 		if (trackStats) {

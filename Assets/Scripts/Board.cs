@@ -110,6 +110,11 @@ public static class Board {
 				blackKingIndex = moveFromIndex;
 			}
 		}
+		else if (capturedPieceCode == kingCode) { // king may be allowed to be captured during alphabeta search
+			blackKingIndex = moveToIndex;
+		} else if (capturedPieceCode == kingCode + 1) {
+			whiteKingIndex = moveToIndex;
+		}
 
 		// Update zobrist key
 		zobristKey ^= ZobristKey.sideToMove; // toggle side to move
@@ -226,10 +231,13 @@ public static class Board {
 		if (movePieceType == kingCode) {
 			if (colourToMove == 1) {
 				whiteKingIndex = moveToIndex;
-			}
-			else {
+			} else {
 				blackKingIndex = moveToIndex;
 			}
+		} else if (capturedPieceCode == kingCode) { // king may be allowed to be captured during alphabeta search
+			blackKingIndex = -1;
+		} else if (capturedPieceCode == kingCode + 1) {
+			whiteKingIndex = 1;
 		}
 		
 		// Pawn moves

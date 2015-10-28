@@ -79,6 +79,7 @@ public class Search {
 			
 			for (int i =0; i < moves.Count; i ++) {
 				Board.MakeMove (moves [i]);
+
 				alpha = Math.Max (alpha, AlphaBetaSearch (plyRemaining - 1, alpha, beta, false));
 				Board.UnmakeMove (moves [i]);
 				
@@ -99,6 +100,7 @@ public class Search {
 			// black is trying to obtain the lowest evaluation possible
 			for (int i =0; i < moves.Count; i ++) {
 				Board.MakeMove (moves [i]);
+
 				beta = Math.Min (beta, AlphaBetaSearch (plyRemaining - 1, alpha, beta, true));
 				Board.UnmakeMove (moves [i]);
 				
