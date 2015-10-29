@@ -30,6 +30,7 @@ public static class Evaluation {
 	}
 	
 	public static int Evaluate() {
+		Timer.Start ("Eval");
 		int materialEval = 0;
 		int mobilityEval = 0;
 		int developmentEval = 0;
@@ -210,7 +211,7 @@ public static class Evaluation {
 		//float gameStage = 
 
 		int finalEval = materialEval * 1000 + mobilityEval + kingSafetyEval + developmentEval;
-
+		Timer.Stop ("Eval");
 		return finalEval;
 	}
 	

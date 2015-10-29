@@ -57,6 +57,8 @@ public class Search {
 		finishedSearch = true;
 		Timer.Print ("Move Time");
 		Timer.Reset ("Move Time");
+		Timer.Print ("Eval");
+		Timer.Reset ("Eval");
 		//UnityEngine.Debug.Log ("hash hits: " + debug_hashHits);
 	}
 

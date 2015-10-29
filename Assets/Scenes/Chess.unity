@@ -343,7 +343,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   regenerateOpeningBook: 0
-  useOpeningBook: 1
+  useOpeningBook: 0
+  useTestPosition: 1
 --- !u!114 &71712212
 MonoBehaviour:
   m_ObjectHideFlags: 0

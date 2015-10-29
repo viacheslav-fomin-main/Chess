@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour {
 
 	public bool regenerateOpeningBook;
 	public bool useOpeningBook;
+	public bool useTestPosition;
 
 	static GameManager myInstance;
 

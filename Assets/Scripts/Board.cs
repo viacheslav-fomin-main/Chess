@@ -37,6 +37,18 @@ public static class Board {
 
 	public static int blackKingIndex;
 	public static int whiteKingIndex;
+
+	public static int whitePawnCount;
+	public static int whiteQueenCount;
+	public static int whiteRookCount;
+	public static int whiteKnightCount;
+	public static int whiteBishopCount;
+
+	public static int blackPawnCount;
+	public static int blackQueenCount;
+	public static int blackRookCount;
+	public static int blackKnightCount;
+	public static int blackBishopCount;
 	
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 	
@@ -81,6 +93,38 @@ public static class Board {
 	public static bool BlackHasCastlingRights() {
 		return (currentGamestate & 24) != 0;
 	}
+
+	/// Used to keep track of number of piece types for each side during play
+	static void UpdatePieceCount(int pieceCode, int add) { 
+		switch (pieceCode) {
+		case Board.rookCode:
+			blackRookCount += add;
+			break;
+		case Board.queenCode:
+			blackQueenCount += add;
+			break;
+		case Board.knightCode:
+			blackKnightCount += add;
+			break;
+		case Board.bishopCode:
+			blackBishopCount += add;
+			break;
+
+		case Board.rookCode +1:
+			whiteRookCount += add;
+			break;
+		case Board.queenCode +1:
+			whiteQueenCount += add;
+			break;
+		case Board.knightCode +1:
+			whiteKnightCount += add;
+			break;
+		case Board.bishopCode +1:
+			whiteBishopCount += add;
+			break;
+		}
+
+	}
 	
 	/// Undo the previous move
 	public static void UnmakeMove (ushort move, bool updateUI = false)
@@ -105,15 +149,17 @@ public static class Board {
 		if (movePieceType == kingCode) {
 			if (colourToMove == 1) {
 				whiteKingIndex = moveFromIndex;
-			}
-			else {
+			} else {
 				blackKingIndex = moveFromIndex;
 			}
-		}
-		else if (capturedPieceCode == kingCode) { // king may be allowed to be captured during alphabeta search
+		} else if (capturedPieceCode == kingCode) { // king may be allowed to be captured during alphabeta search
 			blackKingIndex = moveToIndex;
 		} else if (capturedPieceCode == kingCode + 1) {
 			whiteKingIndex = moveToIndex;
+		}
+
+		if (capturedPieceCode != 0) {
+			UpdatePieceCount(capturedPieceCode, 1);
 		}
 
 		// Update zobrist key
@@ -225,6 +271,10 @@ public static class Board {
 
 		if (capturedPieceCode != 0) {
 			zobristKey ^= ZobristKey.piecesArray[((capturedPieceCode & ~1) >> 1) -1, 1-colourToMove,moveToIndex]; // remove captured piece
+		}
+
+		if (capturedPieceCode != 0) {
+			UpdatePieceCount(capturedPieceCode, -1);
 		}
 
 		// update king positions
@@ -457,6 +507,8 @@ public static class Board {
 					pieceCode |= pawnCode;
 					break;
 				}
+
+				UpdatePieceCount(pieceCode, 1);
 				
 				boardArray[squareIndex128] = pieceCode;
 				SetColourBoard(squareIndex128,squareIndex128, pieceCode & 1);
