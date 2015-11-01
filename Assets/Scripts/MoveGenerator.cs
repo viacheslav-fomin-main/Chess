@@ -500,7 +500,11 @@ public class MoveGenerator {
 			}
 		}
 
-		if (isCastles && !inCheck) {
+		if (isCastles) {
+			if (inCheck) {
+				return;
+			}
+
 			if (SquareAttackedByEnemy(castleThroughIndex)) { // cannot castle if castling through check
 				return;
 			}

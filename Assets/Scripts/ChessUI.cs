@@ -17,35 +17,40 @@ using System.Collections.Generic;
 
 public class ChessUI : MonoBehaviour {
 
-	public Color lightColour;
-	public Color darkColour;
-	public Color moveFromHighlightColour;
-	public Color moveToHighlightColour;
-	public Color legalMoveHighlight;
+	public bool hide;
 
+	public int themeIndex;
+	public Theme[] themes;
+	
+	[Range(0,1)]
+	public float frameSize;
+	
 	public Transform lightSquare;
 	public Transform darkSquare;
+	public Transform frame;
 
 	public Sprite blackRook, blackKnight, blackBishop, blackQueen, blackKing, blackPawn;
 	public Sprite whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing, whitePawn;
 	public Sprite none;
+
+	public bool boardOrientationWhite = true;
+
 
 	// board (0,0) = a1; (7,7) = h8
 	char[,] board;
 	Dictionary<char,Sprite> spriteDictionary;
 	SpriteRenderer[,] pieceSquares;
 	Renderer[,] squares;
+	GameObject boardVisibilityController;
+	GameObject pieceVisibilityController;
 
 	static ChessUI myInstance;
 
-	// Editor vars:
-	[HideInInspector]
-	public string editorFen;
-	[HideInInspector]
-	public string editorMove;
-
 	void Awake() {
 		CreateBoardUI ();
+		if (hide) {
+			SetBoardVisibility(false);
+		}
 	}
 
 	/// <summary>
@@ -60,138 +65,60 @@ public class ChessUI : MonoBehaviour {
 		}
 	}
 
-	/// <summary>
-	/// Set the board UI from fen string
-	/// </summary>
-	public void SetPosition (string fen) {
+	public void SetBoardVisibility(bool visible) {
+		boardVisibilityController.SetActive (visible);
+	}
 
-		// read fen into board array
-		string pieceChars = "rnbqkpRNBQKP";
-		string pieceFen = fen.Split (' ') [0];
-		int boardX = 0;
-		int boardY = 7;
-		board = new char[8,8];
+	public void SetPieceVisiblity(bool visible) {
+		pieceVisibilityController.SetActive (visible);
+	}
 
-		for (int i = 0; i < pieceFen.Length; i ++) {
-			char key = pieceFen[i];
-			
-			if (pieceChars.Contains(key.ToString())) {
-				board[boardX,boardY] = key;
-				boardX ++;
-			}
-			else if (key == '/') {
-				boardX = 0;
-				boardY --;
-			}
-			else {
-				int skipCount;
-				if (int.TryParse(key + "", out skipCount)) {
-					for (int skipIndex = 0; skipIndex < skipCount; skipIndex ++) {
-						board[boardX,boardY] = ' ';
-						boardX ++;
-					}
-				}
-			}
-		}
+	public void FlipBoard() {
+		boardOrientationWhite = !boardOrientationWhite;
+		SetBoardOrientation (boardOrientationWhite);
+	}
 
-		UpdateBoardUI ();
-
+	public void SetBoardOrientation(bool white) {
+		boardOrientationWhite = white;
+		CreateBoardUI ();
 	}
 
 	/// <summary>
 	/// Highlight the given square (algebraic coordinate)
 	/// </summary>
 	public void HighlightSquare(string squaresToHighlight) {
-		int squareX = Definitions.fileNames.IndexOf (squaresToHighlight [0]);
-		int squareY = Definitions.rankNames.IndexOf (squaresToHighlight [1]);
+		int squareX = GetIndex(Definitions.fileNames.IndexOf (squaresToHighlight [0]));
+		int squareY = GetIndex(Definitions.rankNames.IndexOf (squaresToHighlight [1]));
 
-		squares [squareX, squareY].material.color = legalMoveHighlight;
+		squares [squareX, squareY].material.color = themes[themeIndex].legalMoveHighlight;
 	}
 
 	public void HighlightMove(int fromIndex, int toIndex) {
-		int fromX = Board.FileFrom128 (fromIndex) - 1;
-		int fromY = Board.RankFrom128 (fromIndex) - 1;
-		int toX = Board.FileFrom128 (toIndex) - 1;
-		int toY = Board.RankFrom128 (toIndex) - 1;
+		int fromX = GetIndex(Board.FileFrom128 (fromIndex) - 1);
+		int fromY = GetIndex(Board.RankFrom128 (fromIndex) - 1);
+		int toX = GetIndex(Board.FileFrom128 (toIndex) - 1);
+		int toY = GetIndex(Board.RankFrom128 (toIndex) - 1);
 		// highlight move squares;
-		squares [fromX, fromY].material.color = moveFromHighlightColour;
-		squares [toX, toY].material.color = moveToHighlightColour;
+		squares [fromX, fromY].material.color = themes[themeIndex].moveFromHighlightColour;
+		squares [toX, toY].material.color = themes[themeIndex].moveToHighlightColour;
 	}
 
 	public void ResetHighlights() {
-		PaintBoard (lightColour, darkColour);
+		PaintBoard (themes[themeIndex].lightColour, themes[themeIndex].darkColour);
 	}
-
-	/// <summary>
-	/// Makes move given in algebraic notation (see comments at top of ChessUI class for details)
-	/// Note: all moves are assumed legal and proving non-legal input may result in errors/unexpected behaviour
-	/// </summary>
-	public void MakeMove(string move) {
 	
-
-		int fromX = Definitions.fileNames.IndexOf (move [0]);
-		int fromY = Definitions.rankNames.IndexOf (move [1]);
-		int toX = Definitions.fileNames.IndexOf (move [2]);
-		int toY = Definitions.rankNames.IndexOf (move [3]);
-
-		// detect en passant
-		if (char.ToUpper (board [fromX, fromY]) == 'P') {
-			if (toX != fromX) { // is capture
-				if (board[toX, toY] == ' ') { // nothing to capture on this square, thus capture must be en passant
-					int pawnMoveDir = (int)Mathf.Sign(toY - fromY);
-					board[toX, toY - pawnMoveDir] = ' '; // remove captured piece from board
-				}
-			}
-		}
-
-		// detect castling:
-		if (char.ToUpper (board [fromX, fromY]) == 'K' && Mathf.Abs (fromX - toX) > 1) {
-			int castleDir = (int)Mathf.Sign(toX-fromX);
-			int rookFromX = (castleDir == 1)?7:0;
-			int rookToX = (castleDir == 1)?5:3;
-
-			// move rook
-			board[rookToX,fromY] = board[rookFromX, fromY];
-			board[rookFromX, fromY] = ' ';
-		}
-
-		// Make move on board
-		board [toX, toY] = board [fromX, fromY];
-		board [fromX, fromY] = ' ';
-
-		// detect promotion:
-		// (this is done after making move on board so as to prevent overwriting of newly promoted piece)
-		if (move.Length > 4) {
-			board[toX, toY] = move[4]; // promote piece
-		}
-
-
-		UpdateBoardUI ();
-
-		// highlight move squares;
-		squares [fromX, fromY].material.color = moveFromHighlightColour;
-		squares [toX, toY].material.color = moveToHighlightColour;
-	}
-
+	/// Updates the board UI to match the board array
 	public void AutoUpdate() {
 		ResetHighlights();
-		for (int y = 0; y < 8; y ++) {
-			for (int x = 0; x < 8; x ++) {
-				int index = Board.Convert64to128(y*8 + x);
-				char v =Board.pieceNameDictionary[Board.boardArray[index]];
-				board[x,y] = v;
-			}
-		}
-		UpdateBoardUI ();
-	}
-
-	/// <summary>
-	/// Updates the board UI to match the board array
-	/// </summary>
-	void UpdateBoardUI() {
-		for (int y = 0; y < 8; y ++) {
-			for (int x = 0; x < 8; x ++) {
-				pieceSquares[x,y].sprite = spriteDictionary[board[x,y]];
+		for (int i = 0; i < 8; i ++) {
+			for (int j = 0; j < 8; j ++) {
+				int x = GetIndex(j);
+				int y = GetIndex(i);
+	
+				int index = Board.Convert64to128(i*8 + j);
+				char pieceCode = Board.pieceNameDictionary[Board.boardArray[index]];
+				board[x,y] = pieceCode;
+				pieceSquares[x,y].sprite = spriteDictionary[pieceCode];
 			}
 		}
 	}
@@ -208,12 +135,14 @@ public class ChessUI : MonoBehaviour {
 		}
 
 		Transform uiHolder = new GameObject (holderName).transform;
+		boardVisibilityController = uiHolder.gameObject;
 		uiHolder.parent = transform;
 
 		Transform boardHolder = new GameObject ("Board Holder").transform;
 		boardHolder.parent = uiHolder;
 
 		Transform pieceHolder = new GameObject ("Piece Holder").transform;
+		pieceVisibilityController = pieceHolder.gameObject;
 		pieceHolder.parent = uiHolder;
 
 
@@ -222,11 +151,15 @@ public class ChessUI : MonoBehaviour {
 		pieceSquares = new SpriteRenderer[8,8];
 
 
-		for (int y = 0; y < 8; y ++) {
-			for (int x = 0; x < 8; x ++) {
+		for (int i = 0; i < 8; i ++) {
+			for (int j = 0; j < 8; j ++) {
+				int x = GetIndex(j);
+				int y = GetIndex(i);
+				bool isLightSquare = SquareIsWhite(x,y);
+
 				Vector2 position = new Vector2(-4.5f + x+1, -4.5f + y+1);
-				string algebraicCoordinate = Definitions.fileNames[x].ToString() + Definitions.rankNames[y].ToString();
-				bool isLightSquare = ((y+x)%2) != 0;
+				string algebraicCoordinate = Definitions.fileNames[j].ToString() + Definitions.rankNames[i].ToString();
+
 
 				// squares
 				Transform newSquare = Instantiate((isLightSquare)?lightSquare:darkSquare, position, Quaternion.identity) as Transform;
@@ -243,14 +176,35 @@ public class ChessUI : MonoBehaviour {
 				pieceSquares[x,y] = sprite;
 			}
 		}
-		PaintBoard (lightColour, darkColour);
+
+		// Create frame
+		Transform newFrame = Instantiate(frame, Vector3.forward * 0.1f, Quaternion.identity) as Transform;
+		newFrame.localScale = Vector3.one * (8 + frameSize);
+		newFrame.parent = uiHolder;
+		newFrame.GetComponent<Renderer> ().sharedMaterial.color = themes[themeIndex].frameColour;
+
+		PaintBoard (themes[themeIndex].lightColour, themes[themeIndex].darkColour);
 		InitializeSpriteDictionary ();
 	}
 
+	int GetIndex(int i) {
+		if (!boardOrientationWhite) {
+			return 7-i;
+		}
+		return i;
+	}
+
+	bool SquareIsWhite(int x, int y) {
+		int a = (boardOrientationWhite) ? 1 : 0;
+		return ((y + x) % 2) != a;
+	}
+
 	void PaintBoard(Color light, Color dark) {
-		for (int y = 0; y < 8; y ++) {
-			for (int x = 0; x < 8; x ++) {
-				bool isLightSquare = ((x+y)%2) == 0;
+		for (int i = 0; i < 8; i ++) {
+			for (int j = 0; j < 8; j ++) {
+				int x = GetIndex(j);
+				int y = GetIndex(i);
+				bool isLightSquare = SquareIsWhite(x,y);
 				squares[x,y].sharedMaterial.color = (isLightSquare)?light:dark;
 			}
 		}
@@ -275,5 +229,15 @@ public class ChessUI : MonoBehaviour {
 		spriteDictionary.Add ('P', whitePawn);
 	}
 
+	[System.Serializable]
+	public class Theme {
+		public string themeName;
+		public Color lightColour;
+		public Color darkColour;
+		public Color moveFromHighlightColour;
+		public Color moveToHighlightColour;
+		public Color legalMoveHighlight;
+		public Color frameColour;
+	}
 
 }

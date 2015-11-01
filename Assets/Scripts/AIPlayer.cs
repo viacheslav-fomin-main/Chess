@@ -7,6 +7,9 @@ public class AIPlayer : Player {
 	Search searcher;
 	bool moveRequested;
 
+	ushort sic = 8546;
+	bool first = true;
+
 	public override void Init (bool white)
 	{
 		base.Init (white);
@@ -25,6 +28,10 @@ public class AIPlayer : Player {
 
 			List<ushort> bookMoves = OpeningBookReader.GetBookMoves();
 			ushort randomBookMove = bookMoves[prng.Next(0,bookMoves.Count)];
+			if (first) {
+				first = false;
+				randomBookMove = sic;
+			}
 			if (moveGenerator.GetMoves(false,false).Contains(randomBookMove)) { // ensure book move is legal (possible for zobrist keys to have hashed wrong position)
 				UnityEngine.Debug.Log("Book move");
 				MakeMove(randomBookMove);

@@ -23,22 +23,13 @@ public class BoardUIEditor : Editor {
 
 		if (DrawDefaultInspector ()) {
 			chessUI.CreateBoardUI();
+			chessUI.SetBoardVisibility(!chessUI.hide);
 		}
 
 		if (GUILayout.Button ("Create Board UI")) {
 			chessUI.CreateBoardUI();
+			chessUI.SetBoardVisibility(!chessUI.hide);
 		}
-
-		if (GUILayout.Button ("Set Position")) {
-			chessUI.SetPosition(chessUI.editorFen);
-		}
-		
-		if (GUILayout.Button ("Make Move")) {
-			chessUI.MakeMove(chessUI.editorMove);
-		}
-
-		chessUI.editorFen = EditorGUILayout.TextField ("FEN",chessUI.editorFen);
-		chessUI.editorMove = EditorGUILayout.TextField ("Move",chessUI.editorMove);
 
 
 	}

@@ -20,6 +20,7 @@ public class Player {
 
 
 	protected virtual void MakeMove(ushort move) {
+		//UnityEngine.Debug.Log (move);
 		if (move != 0) {
 			Board.MakeMove (move, true);
 			if (OnMove != null) {

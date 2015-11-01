@@ -44,9 +44,10 @@ public class Search {
 	
 	void Iterate() {
 		Timer.Start ("Move Time");
-		debug_hashHits = 0;
-		int depth = 4;
-		for (int i = depth; i <= depth; i ++) {
+
+		int startDepth = 4;
+
+		for (int i = startDepth; i <= startDepth; i ++) {
 			searchDepth = i;
 			bestScoreThisIteration = (findingMoveForWhite)?int.MinValue:int.MaxValue;
 
@@ -57,7 +58,7 @@ public class Search {
 		finishedSearch = true;
 		Timer.Print ("Move Time");
 		Timer.Reset ("Move Time");
-		Timer.Print ("Eval");
+		//Timer.Print ("Eval");
 		Timer.Reset ("Eval");
 		//UnityEngine.Debug.Log ("hash hits: " + debug_hashHits);
 	}
