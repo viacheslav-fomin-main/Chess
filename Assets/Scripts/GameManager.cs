@@ -27,6 +27,8 @@ public class GameManager : MonoBehaviour {
 	}
 	
 	void Start () {
+		Board.SetPositionFromFen (Definitions.gameStartFen);
+
 		ZobristKey.Init ();
 		Evaluation.Init ();
 		if (regenerateOpeningBook) {
@@ -36,7 +38,7 @@ public class GameManager : MonoBehaviour {
 
 		playerManager = GetComponent<PlayerManager> ();
 
-		Board.SetPositionFromFen (Definitions.gameStartFen);
+
 
 		playerManager.CreatePlayers ();
 	}

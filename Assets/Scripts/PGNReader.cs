@@ -2,13 +2,14 @@
 using System.Collections;
 
 public class PGNReader {
-	
+
+	/// Returns a list of moves given a pgn string.
+	/// Note that Board should be set to whatever starting position of pgn is.
 	public static List<ushort> MovesFromPGN(string pgn) {
 		List<string> moveStrings = MoveStringsFromPGN (pgn);
 		List<ushort> allMoves = new List<ushort> ();
 
 		MoveGenerator moveGen = new MoveGenerator ();
-		Board.SetPositionFromFen (Definitions.startFen);
 
 		for (int i =0; i < moveStrings.Count; i++) {
 			string moveString = moveStrings[i];
@@ -17,9 +18,9 @@ public class PGNReader {
 			moveString = moveString.Replace("#",""); // remove mate symbol
 			moveString = moveString.Replace("x",""); // remove capture symbol
 
-			IList<ushort> movesInPosition = moveGen.GetMoves(false,false) as IList<ushort>;
+			ushort[] movesInPosition = moveGen.GetMoves(false,false).moves;
 			ushort move = 0;
-			for (int j =0; j < movesInPosition.Count; j ++) {
+			for (int j =0; j < movesInPosition.Length; j ++) {
 				move = movesInPosition[j];
 				int moveFromIndex = move & 127;
 				int moveToIndex = (move >> 7) & 127;
@@ -97,13 +98,22 @@ public class PGNReader {
 				}
 
 			}
-			allMoves.Add(move);
+			if (move == 0) { // move is illegal; discard and return moves up to this point
+				return allMoves;
+			}
+			else {
+				allMoves.Add(move);
+			}
 			Board.MakeMove(move);
+		}
+		for (int i = allMoves.Count-1; i>= 0; i --) {
+			Board.UnmakeMove(allMoves[i]);
 		}
 
 		return allMoves;
 	}
 
+	/// Returns a list containing individual move strings as extracted from supplied pgn string
 	public static List<string> MoveStringsFromPGN(string pgn) {
 
 		List<string> allMoveStrings = new List<string> ();
@@ -142,6 +152,117 @@ public class PGNReader {
 			}
 		}
 
+		if (readingMove) {
+			allMoveStrings.Add(currentMoveString);
+		}
+
+	
 		return allMoveStrings;
+	}
+
+	public static string NotationFromMove(ushort move) { // move must not have been made on board yet
+		MoveGenerator moveGen = new MoveGenerator ();
+		int moveFromIndex = move & 127;
+		int moveToIndex = (move >> 7) & 127;
+		int promotionPieceIndex = (move >> 14) & 3; // 0 = queen, 1 = rook, 2 = knight, 3 = bishop
+		int colourToMove = Board.boardColourArray[moveFromIndex];
+		
+		int movePieceCode = Board.boardArray [moveFromIndex]; // get move piece code
+		int movePieceType = movePieceCode & ~1; // get move piece type code (no colour info)
+		int capturedPieceCode = Board.boardArray [moveToIndex]; // get capture piece code
+		
+		int promotionPieceType = Board.pieceCodeArray [promotionPieceIndex];
+		
+		if (movePieceType == Board.kingCode) {
+			if (moveToIndex - moveFromIndex == 2) {
+				return "O-O";
+			}
+			else if (moveToIndex - moveFromIndex == -2) {
+				return "O-O-O";
+			}
+		}
+		
+		string moveNotation = GetSymbolFromPieceType(movePieceType);
+		
+		// check if any ambiguity exists in notation (e.g if e2 can be reached via Nfe2 and Nbe2)
+		if (movePieceType != Board.pawnCode && movePieceType != Board.kingCode) {
+			Heap allMoves = moveGen.GetMoves(false, false);
+			
+			for (int i =0; i < allMoves.Count; i ++) {
+				int alternateMoveFromIndex = allMoves.moves[i] & 127;
+				int alternateMoveToIndex = ( allMoves.moves[i]  >> 7) & 127;
+				int alternateMovePieceCode = Board.boardArray [alternateMoveFromIndex];
+				
+				if (alternateMoveFromIndex != moveFromIndex && alternateMoveToIndex == moveToIndex) { // if moving to same square from different square
+					if (alternateMovePieceCode == movePieceCode) { // same piece type
+						int fromFileIndex = Board.FileFrom128(moveFromIndex) -1;
+						int alternateFromFileIndex = Board.FileFrom128(alternateMoveFromIndex) -1;
+						int fromRankIndex = Board.RankFrom128(moveFromIndex) -1;
+						int alternateFromRankIndex = Board.RankFrom128(alternateMoveFromIndex) -1;
+						
+						if (fromFileIndex != alternateFromFileIndex) { // pieces on different files, thus ambiguity can be resolved by specifying file
+							moveNotation += Definitions.fileNames[fromFileIndex];
+							break; // ambiguity resolved
+						}
+						else if (fromRankIndex != alternateFromRankIndex) {
+							moveNotation += Definitions.rankNames[fromRankIndex];
+							break; // ambiguity resolved
+						}
+					}
+				}
+				
+			}
+		}
+		
+		if (capturedPieceCode != 0) { // add 'x' to indicate capture
+			if (movePieceType == Board.pawnCode) {
+				moveNotation += Definitions.fileNames[Board.FileFrom128(moveFromIndex)-1];
+			}
+			moveNotation += "x";
+		} else { // check if capturing ep
+			if (movePieceType == Board.pawnCode) {
+				if (System.Math.Abs (moveToIndex - moveFromIndex) != 16 && System.Math.Abs (moveToIndex - moveFromIndex) != 32) {
+					moveNotation += Definitions.fileNames[Board.FileFrom128(moveFromIndex)-1] + "x";
+				}
+			}
+		}
+		
+		moveNotation += Definitions.fileNames [Board.FileFrom128 (moveToIndex) - 1];
+		moveNotation += Definitions.rankNames [Board.RankFrom128 (moveToIndex) - 1];
+		
+		// add = piece type if promotion
+		if (movePieceType == Board.pawnCode) {
+			if (moveToIndex >= 112 || moveToIndex <= 7) { // pawn has reached first/eighth rank
+				moveNotation += "=" + GetSymbolFromPieceType(promotionPieceType);
+			}
+		}
+		
+		// add check/mate symbol if applicable
+		Board.MakeMove (move);
+		if (moveGen.PositionIsMate ()) {
+			moveNotation += "#";
+		} else if (moveGen.PositionIsCheck ()) {
+			moveNotation += "+";
+		}
+		Board.UnmakeMove (move);
+		
+		return moveNotation;
+	}
+	
+	static string GetSymbolFromPieceType(int pieceType) {
+		switch (pieceType) {
+		case Board.rookCode:
+			return "R";
+		case Board.knightCode:
+			return "N";
+		case Board.bishopCode:
+			return "B";
+		case Board.queenCode:
+			return "Q";
+		case Board.kingCode:
+			return "K";
+		default:
+			return "";
+		}
 	}
 }

@@ -15,11 +15,10 @@ public class HumanPlayer : Player {
 	/// </summary>
 	protected override void MakeMove (ushort move)
 	{
-		//Board.debugMode = true;
+		//UnityEngine.Debug.Log (move);
+		//UnityEngine.Debug.Log (PGNReader.NotationFromMove (move));
 		base.MakeMove (move);
 		movesMade.Push (move);
-		//Board.debugMode = false;
-		//legalMovesInPosition = moveGenerator.GetAllLegalMoves (currentPosition);
 	}
 
 

@@ -54,6 +54,21 @@ public class MoveGenerator {
 		return moves;
 	}
 
+	/// Not optimised; only intended for use by UI etc
+	public bool PositionIsCheck() {
+		moveColour = Board.currentGamestate & 1;
+		
+		opponentColour = 1-moveColour;
+		friendlyKingIndex = (moveColour == 1)?Board.whiteKingIndex:Board.blackKingIndex;
+		return SquareAttackedByEnemy (friendlyKingIndex);
+
+	}
+
+	/// Not optimised; only intended for use by UI etc
+	public bool PositionIsMate() {
+		return GetMoves (false, false).Count == 0;
+	}
+
 	void GenerateMove(int moveFromIndex) {
 		int moveToIndex;
 

@@ -12,3 +12,8 @@
 /// Bit 14 = move was ep capture (not implemented)
 /// Bit 15 = move was promotion (not implemented)
 /// Bit 16 = move was castles (not implemented)
+
+// Known issues:
+/// notation does not handle cases where both file and rank must be specified in order for move not to be ambiguous. For example in the following position:
+/// rnb1kbnr/pppppppp/qqR5/q1q2NR1/qqR5/3P1N2/PPP1PPPP/1NBQKB1R w KQkq -
+/// for the a6 queen to move to b5, the notation must be Qa6b5
