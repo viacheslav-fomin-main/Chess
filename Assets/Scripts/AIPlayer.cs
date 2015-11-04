@@ -24,13 +24,14 @@ public class AIPlayer : Player {
 		bool bookMovePlayed = false;
 
 		if (OpeningBookReader.IsInBook () && GameManager.instance.useOpeningBook) {
+			UnityEngine.Debug.Log("In Book");
 			Random prng = new Random();
 
 			List<ushort> bookMoves = OpeningBookReader.GetBookMoves();
 			ushort randomBookMove = bookMoves[prng.Next(0,bookMoves.Count)];
 			if (first) {
 				first = false;
-				randomBookMove = sic;
+				//randomBookMove = sic;
 			}
 			if (moveGenerator.GetMoves(false,false).Contains(randomBookMove)) { // ensure book move is legal (possible for zobrist keys to have hashed wrong position)
 				UnityEngine.Debug.Log("Book move");

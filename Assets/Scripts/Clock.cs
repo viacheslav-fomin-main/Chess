@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
 public class Clock : MonoBehaviour {
 
-	PlayerManager playerManager;
+	MoveManager playerManager;
 
 	public float clockTimeSeconds;
 	public float incrementSeconds;
@@ -16,7 +16,7 @@ public class Clock : MonoBehaviour {
 	public Text clockUIBlack;
 
 	void Start () {
-		playerManager = GetComponent<PlayerManager> ();
+		playerManager = GetComponent<MoveManager> ();
 		
 		playerManager.OnMoveMade += OnMoveMade;
 		secondsRemainingWhite = clockTimeSeconds;
@@ -42,7 +42,7 @@ public class Clock : MonoBehaviour {
 		clockUIBlack.text = string.Format("{0:0}:{1:00}",clockMinutesRemainingBlack, clockDecondsRemainingBlack);
 	}
 	
-	void OnMoveMade(bool moverIsWhite) {
+	void OnMoveMade(bool moverIsWhite, ushort move) {
 		if (moverIsWhite) {
 			secondsRemainingWhite += incrementSeconds;
 		} else {

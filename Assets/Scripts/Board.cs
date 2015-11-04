@@ -49,6 +49,8 @@ public static class Board {
 	public static int blackRookCount;
 	public static int blackKnightCount;
 	public static int blackBishopCount;
+
+	public static int halfmoveCount;
 	
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 	
@@ -230,6 +232,8 @@ public static class Board {
 			zobristKey ^= ZobristKey.piecesArray[(movePieceType >> 1) - 1, colourToMove,moveFromIndex]; // remove promoted piece from zobrist key
 			zobristKey ^= ZobristKey.piecesArray[(pawnCode>>1)-1,colourToMove, moveFromIndex]; // add the demoted pawn to zobrist key
 		}
+
+		halfmoveCount --;
 		
 		if (debugMode) {
 			DebugGameState (currentGamestate);
@@ -239,7 +243,7 @@ public static class Board {
 			UpdatePhysicalBoard ();
 		}
 	}
-	
+
 	
 	/// Update all boards to reflect latest move
 	/// Note that move is assumed to be legal
@@ -256,7 +260,6 @@ public static class Board {
 		int movePieceType = movePieceCode & ~1; // get move piece type code (no colour info)
 		int capturedPieceCode = boardArray [moveToIndex]; // get capture piece code
 		int promotionPieceCode = 0; // this assigned later if promotion occurs
-
 
 		// Update board with new move:
 		boardArray [moveToIndex] = movePieceCode;
@@ -394,6 +397,7 @@ public static class Board {
 		zobristKey ^= ZobristKey.castlingRightsWhite[(newGamestate >> 1) & 3];
 		zobristKey ^= ZobristKey.castlingRightsBlack[(newGamestate >> 3) & 3];
 
+		halfmoveCount ++;
 		newGamestate ^= 1; // toggle side to move
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
@@ -529,7 +533,11 @@ public static class Board {
 		string sideToMove = fenSections [1];
 		string castlingRights = fenSections [2];
 		string enPassantCaptureSquare = fenSections [3];
-		//string halfMoveNumber = fenSections [4];
+
+		halfmoveCount = 0;
+		if (fenSections.Length > 4) {
+			int.TryParse(fenSections[4], out halfmoveCount);
+		}
 		//	string fullMoveNumber = fenSections [5];
 		
 		// Set side to move (bit 1)
@@ -571,58 +579,12 @@ public static class Board {
 
 	}
 	
-	static void MakeTestMove() {
-		return;
-		/*
-		ushort moveA = 0;
-		ushort moveB = 0;
-		ushort moveC = 0;
-		ushort moveD = 0;
-		ushort moveE = 0;
-		ushort moveF = 0;
-
-		// 0-0
-		moveA = 4 | 6<<7;
-		MakeMove (moveA,true);
-
-		// 0-0-0
-		moveB = 116 | 114<<7;
-		MakeMove (moveB,true);
-
-		// exf8=Q
-		moveC = 100 | 117 << 7;
-		MakeMove (moveC,true);
-
-		// f4
-		moveD = 69 | 53 << 7;
-		MakeMove (moveD,true);
-
-		// g4
-		moveE = 22 | 54 << 7;
-		MakeMove (moveE,true);
-
-		// fxg3
-		moveF = 53 | 38 << 7;
-		MakeMove (moveF,true);
-
-
-		UnityEngine.Debug.Log ("## undo fxg3");
-		UnmakeMove (moveF, true);
-	
-		//UnityEngine.Debug.Log ("## undo exf8=q");
-		UnmakeMove (moveE, true);
-		//UnityEngine.Debug.Log ("## undo black 0-0-0");
-		UnmakeMove (moveD, true);
-		//UnityEngine.Debug.Log ("## undo white 0-0");
-		UnmakeMove (moveC, true);
-		UnmakeMove (moveB, true);
-		UnmakeMove (moveA, true);
-		*/
-		
-	}
-	
 	public static bool IsWhiteToPlay() {
 		return ((currentGamestate&1) == 1);
+	}
+
+	public static int GetFullMoveCount() {
+		return halfmoveCount / 2;
 	}
 	
 	public static void PrintBoard(string optionalHeader = "") {
@@ -704,9 +666,12 @@ public static class Board {
 		UnityEngine.Debug.Log (colourString);
 		UnityEngine.Debug.Log ("########################### \n");
 	}
+
+	public static int ColourToPlay() {
+		return (IsWhiteToPlay()) ? 1 : 0;
+	}
 	
-	
-	static int ColourCode(bool white) {
+	public static int ColourCode(bool white) {
 		return (white) ? 1 : 0;
 	}
 	

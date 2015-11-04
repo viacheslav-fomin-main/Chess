@@ -52,6 +52,10 @@ public class HumanPlayer : Player {
 		}
 	}
 
+	public void TryMakeMove(ushort move) {
+		MakeMove (move);
+	}
+
 	public override void RequestMove ()
 	{
 		base.RequestMove ();

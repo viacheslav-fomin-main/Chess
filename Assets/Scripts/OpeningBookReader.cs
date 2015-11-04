@@ -37,6 +37,7 @@ public static class OpeningBookReader {
 	}
 
 	public static bool IsInBook() {
+		//UnityEngine.Debug.Log (Board.zobristKey + "  " +  book.ContainsKey(Board.zobristKey));
 		return book.ContainsKey(Board.zobristKey);
 	}
 

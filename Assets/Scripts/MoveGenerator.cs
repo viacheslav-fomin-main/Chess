@@ -66,7 +66,11 @@ public class MoveGenerator {
 
 	/// Not optimised; only intended for use by UI etc
 	public bool PositionIsMate() {
-		return GetMoves (false, false).Count == 0;
+		return (GetMoves (false, false).Count == 0 && PositionIsCheck());
+	}
+
+	public bool PositionIsStaleMate() {
+		return (GetMoves (false, false).Count == 0 && !PositionIsCheck());
 	}
 
 	void GenerateMove(int moveFromIndex) {

@@ -1,21 +1,22 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class GameManager : MonoBehaviour {
 
-	PlayerManager playerManager;
+	MoveManager playerManager;
 
-	float clockTimeSeconds;
-	float incrementSeconds;
+	[Header("Game mode:")]
+	public bool blindfold;
 
-	float secondsRemainingWhite;
-	float secondsRemainingBlack;
-
+	[Space(15)]
 	public bool regenerateOpeningBook;
 	public bool useOpeningBook;
 	public bool useTestPosition;
 
 	static GameManager myInstance;
+
+
 
 	public static GameManager instance {
 		get {
@@ -27,7 +28,7 @@ public class GameManager : MonoBehaviour {
 	}
 	
 	void Start () {
-		Board.SetPositionFromFen (Definitions.gameStartFen);
+		Board.SetPositionFromFen (Definitions.gameStartFen,true);
 
 		ZobristKey.Init ();
 		Evaluation.Init ();
@@ -36,11 +37,12 @@ public class GameManager : MonoBehaviour {
 		}
 		OpeningBookReader.Init ();
 
-		playerManager = GetComponent<PlayerManager> ();
-
-
+		playerManager = GetComponent<MoveManager> ();
 
 		playerManager.CreatePlayers ();
+
+		Board.SetPositionFromFen (Definitions.gameStartFen,true);
+
 	}
 
 

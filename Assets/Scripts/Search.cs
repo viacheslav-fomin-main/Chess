@@ -26,6 +26,7 @@ public class Search {
 	bool useHash = true;
 	
 	public void StartSearch() {
+		bestMoveSoFar = 0;
 		transpositionTable.Clear ();
 		
 		nodesSearched = 0;

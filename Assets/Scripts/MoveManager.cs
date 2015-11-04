@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-public class PlayerManager : MonoBehaviour {
+public class MoveManager : MonoBehaviour {
 
 	public enum PlayerType {Human, AI};
 	public PlayerType whitePlayerType;
@@ -15,7 +15,9 @@ public class PlayerManager : MonoBehaviour {
 	public bool whiteToPlay;
 
 	ChessInput boardInput;
-	public event Action<bool> OnMoveMade;
+	public event Action<bool, ushort> OnMoveMade;
+	public event Action<int> OnGameOver; // result (-1;0;1) (black wins; draw; white wins)
+	MoveGenerator moveGenerator = new MoveGenerator();
 
 	public void CreatePlayers() {
 		boardInput = GetComponent<ChessInput> ();
@@ -26,12 +28,15 @@ public class PlayerManager : MonoBehaviour {
 		AIPlayer blackAI = null;
 
 		if (whitePlayerType == PlayerType.Human) {
+			ChessUI.instance.SetBoardOrientation(true);
 			whiteHuman = new HumanPlayer ();
 			boardInput.AddPlayer (whiteHuman);
+			FindObjectOfType<NotationInput>().SetPlayer(whiteHuman);
 		} else {
 			whiteAI = new AIPlayer ();
 		}
 		if (blackPlayerType == PlayerType.Human) {
+			ChessUI.instance.SetBoardOrientation(false);
 			blackHuman = new HumanPlayer ();
 			boardInput.AddPlayer (blackHuman);
 		} else {
@@ -51,21 +56,29 @@ public class PlayerManager : MonoBehaviour {
 		RequestMove ();
 	}
 
-	void OnMove() {
+	void OnMove(ushort move) {
+		if (OnMoveMade != null) {
+			OnMoveMade(whiteToPlay, move);
+		}
+
 		whiteToPlay = !whiteToPlay;
 
-		if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
-			StartCoroutine(RequestMoveCoroutine(.15f)); // force delay between moves when two AI are playing
+
+		// detect mate/stalemate
+		if (moveGenerator.PositionIsMate ()) {
+			if (OnGameOver != null) {
+				OnGameOver(((whiteToPlay)?-1:1)); // player is mated
+			}
+		} else if (moveGenerator.PositionIsStaleMate ()) {
+			OnGameOver(0); // player is mated
 		} else {
-			RequestMove();
-			//StartCoroutine(RequestMoveCoroutine(0));
-		}
 
-		if (OnMoveMade != null) {
-			OnMoveMade(!whiteToPlay);
+			if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
+				StartCoroutine (RequestMoveCoroutine (.15f)); // force delay between moves when two AI are playing
+			} else {
+				RequestMove ();
+			}
 		}
-
-		//_Tests.ZobristCheck ();
 	}
 
 	void RequestMove() {
@@ -89,10 +102,6 @@ public class PlayerManager : MonoBehaviour {
 	void Update() {
 		whitePlayer.Update ();
 		blackPlayer.Update ();
-
-		if (Input.GetKeyDown(KeyCode.Backspace)) {
-			Board.UnmakeMove(HumanPlayer.movesMade.Pop(),true);
-		}
 	}
 
 

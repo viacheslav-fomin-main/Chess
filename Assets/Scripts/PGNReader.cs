@@ -17,6 +17,7 @@ public class PGNReader {
 			moveString = moveString.Replace("+",""); // remove check symbol
 			moveString = moveString.Replace("#",""); // remove mate symbol
 			moveString = moveString.Replace("x",""); // remove capture symbol
+			string moveStringLower = moveStrings[i].ToLower();
 
 			ushort[] movesInPosition = moveGen.GetMoves(false,false).moves;
 			ushort move = 0;
@@ -28,39 +29,42 @@ public class PGNReader {
 				int colourCode = Board.boardArray[moveFromIndex] & 1;
 
 
-				if (moveString == "OO") { // castle kingside
+				if (moveStringLower == "oo") { // castle kingside
 					if (movePieceType == Board.kingCode && moveToIndex - moveFromIndex == 2) {
 						break;
 					}
 				}
-				else if (moveString == "OOO") { // castle queenside
+				else if (moveStringLower == "ooo") { // castle queenside
 					if (movePieceType == Board.kingCode && moveToIndex - moveFromIndex == -2) {
 						break;
 					}
 				}
-				else if (Definitions.fileNames.Contains(moveString[0] + "")) { // pawn move if starts with any file indicator (e.g. e4)
+				else if (Definitions.fileNames.Contains(moveString[0] + "")) { // pawn move if starts with any file indicator (e.g. 'e'4. Note that uppercase B is used for bishops)
 					if (movePieceType != Board.pawnCode) {
 						continue;
 					}
-					if (Definitions.FileNumberFromAlgebraicName(moveString[0]) == Board.FileFrom128(moveFromIndex)) { // correct starting file
+					if (Definitions.FileNumberFromAlgebraicName(moveStringLower[0]) == Board.FileFrom128(moveFromIndex)) { // correct starting file
 						if (moveString.Contains("=")) { // is promotion
-							char promotionChar = moveString[moveString.Length-1];
-							moveString = moveString.Remove(moveString.IndexOf("="), 2); // remove promotion tag from moveString
+							char promotionChar = moveStringLower[moveStringLower.Length-1];
 
 							int promotionPieceIndex = move >> 14 & 3;
 							int promotionPieceCode = Board.pieceCodeArray [promotionPieceIndex];
-							if (!(promotionPieceCode == Board.queenCode && promotionChar == 'Q') && !(promotionPieceCode == Board.rookCode && promotionChar == 'R')
-							    && !(promotionPieceCode == Board.bishopCode && promotionChar == 'B') && !(promotionPieceCode == Board.knightCode && promotionChar == 'N')) {
+
+							if ((promotionPieceCode == Board.queenCode && promotionChar != 'q') || (promotionPieceCode == Board.rookCode && promotionChar != 'r')
+							    || (promotionPieceCode == Board.bishopCode && promotionChar != 'b') || (promotionPieceCode == Board.knightCode && promotionChar != 'n')) {
 								continue; // skip this move, incorrect promotion type
 							}
+							break;
 						}
+						else {
 					
-						char targetFile = moveString[moveString.Length-2];
-						char targetRank = moveString[moveString.Length-1];
+							char targetFile = moveString[moveString.Length-2];
+							char targetRank = moveString[moveString.Length-1];
 
-						if (Definitions.FileNumberFromAlgebraicName(targetFile) == Board.FileFrom128(moveToIndex)) { // correct ending file
-							if (Definitions.RankNumberFromAlgebraicName(targetRank) == Board.RankFrom128(moveToIndex)) { // correct ending rank
-								break;
+							if (Definitions.FileNumberFromAlgebraicName(targetFile) == Board.FileFrom128(moveToIndex)) { // correct ending file
+								if (Definitions.RankNumberFromAlgebraicName(targetRank) == Board.RankFrom128(moveToIndex)) { // correct ending rank
+									break;
+								}
 							}
 						}
 					}
@@ -121,30 +125,32 @@ public class PGNReader {
 		bool readingComment = false;
 		bool readingMove = false;
 
-		string moveStartChars = "abcdefghRNBKQO";
-		string moveChars = "12345678abcdefghRNBKQO=x+#";
+		string moveStartChars = "abcdefghrnbkqo";
+		string moveChars = "12345678abcdefghrnbkqo=x+#";
 		string currentMoveString = "";
 
 		for (int i =0; i < pgn.Length; i++) {
-			if (pgn[i] == '[' || pgn[i] == '{') {
+			string currentCharStringLower = pgn.ToLower()[i] + "";
+			string currentCharString = pgn[i] + "";
+			if (currentCharStringLower == "[" || currentCharStringLower == "{") {
 				readingComment = true;
 			}
-			else if (pgn[i] == ']' || pgn[i] == '}') {
+			else if (currentCharStringLower == "]" ||currentCharStringLower == "}") {
 				readingComment = false;
 			}
 
 			if (!readingComment) {
 				if (readingMove) {
-					if (pgn[i] == ' ') { // space between moves
+					if (currentCharStringLower == " ") { // space between moves
 						allMoveStrings.Add(currentMoveString);
 						currentMoveString = "";
 						readingMove = false;
 					}
-					else if (moveChars.Contains(pgn[i] + "")) {
-						currentMoveString += pgn[i] + "";
+					else if (moveChars.Contains(currentCharStringLower)) {
+						currentMoveString += currentCharString;
 					}
 				}
-				else if (moveStartChars.Contains(pgn[i] + "")) {
+				else if (moveStartChars.Contains(currentCharStringLower)) {
 					i--; // return to last char to begin reading at move start next iteration
 					readingMove = true;
 				}
@@ -160,7 +166,9 @@ public class PGNReader {
 		return allMoveStrings;
 	}
 
-	public static string NotationFromMove(ushort move) { // move must not have been made on board yet
+	public static string NotationFromMove(ushort move) {
+		Board.UnmakeMove (move); // unmake move on board
+
 		MoveGenerator moveGen = new MoveGenerator ();
 		int moveFromIndex = move & 127;
 		int moveToIndex = (move >> 7) & 127;
@@ -175,9 +183,11 @@ public class PGNReader {
 		
 		if (movePieceType == Board.kingCode) {
 			if (moveToIndex - moveFromIndex == 2) {
+				Board.MakeMove (move); // remake move
 				return "O-O";
 			}
 			else if (moveToIndex - moveFromIndex == -2) {
+				Board.MakeMove (move); // remake move
 				return "O-O-O";
 			}
 		}
@@ -238,14 +248,12 @@ public class PGNReader {
 		}
 		
 		// add check/mate symbol if applicable
-		Board.MakeMove (move);
+		Board.MakeMove (move); // remake move
 		if (moveGen.PositionIsMate ()) {
 			moveNotation += "#";
 		} else if (moveGen.PositionIsCheck ()) {
 			moveNotation += "+";
 		}
-		Board.UnmakeMove (move);
-		
 		return moveNotation;
 	}
 	

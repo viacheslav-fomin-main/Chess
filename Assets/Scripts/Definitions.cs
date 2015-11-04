@@ -19,7 +19,7 @@ public class Definitions {
 
 	public static string testPosition {
 		get {
-			return "r1b3nr/pppppppp/2nbq3/8/6k1/Q4N2/PPPPPPPP/RNB1KB1R w KQkq -";
+			return "b2qkb1r/2pp1pp1/2n2n1p/1p2p3/4P3/1B3N2/1PPPQPPP/1NB1K2R w Kk - 1 10";
 			
 		}
 	}

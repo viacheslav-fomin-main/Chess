@@ -5,55 +5,89 @@ using System.Collections.Generic;
 
 public class NotationInput : MonoBehaviour {
 
-	public Text inputUI;
+	Text inputUI;
+	public Text inputError;
 	MoveGenerator moveGen = new MoveGenerator();
 
-	string legalInputChars = "abcdefghRNBQK12345678O-x+#=";
-	string currentInput;
+	string legalInputChars = "abcdefghrnbqk12345678o-x+#=";
+	string currentInput = "";
+
+	const float timeBetweenBackspace = .15f;
+	float nextBackspaceTime;
+	bool inputFrozen;
+
+	HumanPlayer player;
 
 	void Start() {
-		/*
-		currentInput = "e4";
-		ValidateEntry ();
-		currentInput = "e5";
-		ValidateEntry ();
-		currentInput = "Nf3";
-		ValidateEntry ();
-		currentInput = "Nf6";
-		ValidateEntry ();
-		currentInput = "Nbg1";
-		ValidateEntry ();
-*/
+		inputError.gameObject.SetActive(false);
+	}
+
+	public void SetPlayer(HumanPlayer p) {
+		player = p;
+	}
+
+	public void SetInputUI(Text ui) {
+		inputUI = ui;
+	}
+
+	public void Clear() {
+		inputUI.text = "";
+		currentInput = "";
 	}
 	
 	void Update () {
-		if (Input.inputString.Length > 0) {
+		if (inputFrozen) {
+			return;
+		}
 
-			char inputChar = Input.inputString [0];
-			print(inputChar + "");
-			if (legalInputChars.Contains (inputChar + "")) {
-				currentInput += inputChar + "";
+		if (Input.inputString.Length > 0) {
+			string input = Input.inputString [0].ToString();
+			if (legalInputChars.Contains (input.ToLower())) {
+				if (currentInput.Length < 7) {
+					if ("rnkqo".Contains(input.ToLower())) { // auto capitalise piece names (excluding bishop since could refer to b file)
+						input = input.ToUpper();
+					}
+					else if ("acdefghx".Contains(input.ToLower())) { // auto lowercase files names (excluding b file since could refer to bishop)
+						input = input.ToLower();
+					}
+					currentInput += input;
+				}
 			}
 		}
 
 		// backspace
-		if (Input.GetKeyDown(KeyCode.Backspace)) {
-			currentInput.Remove(currentInput.Length-1);
+		if (Input.GetKey(KeyCode.Backspace)) {
+			if (currentInput.Length > 0 && Time.time > nextBackspaceTime) {
+				nextBackspaceTime = Time.time + timeBetweenBackspace;
+				currentInput = currentInput.Remove(currentInput.Length-1);
+			}
+		}
+		if (Input.GetKeyUp (KeyCode.Backspace)) {
+			nextBackspaceTime = 0;
 		}
 
 		inputUI.text = currentInput;
 
 		// enter
 		if (Input.GetKeyDown(KeyCode.Return)) {
-			ValidateEntry();
+			if (!ValidateEntry()) {
+				inputError.text = "move illegal / incorrect format";
+				inputError.gameObject.SetActive(true);
+				inputUI.text = "";
+				currentInput = "";
+			}
+			else {
+				inputError.gameObject.SetActive(false);
+			}
 		}
 	}
 
-	public void ValidateEntry() {
+	public bool ValidateEntry() {
 		if (currentInput.Length > 0) {
 			List<ushort> inputtedMoves = PGNReader.MovesFromPGN (currentInput);
 			if (inputtedMoves.Count > 0) {
 				string cleanedInput = PGNReader.MoveStringsFromPGN (currentInput) [0];
+			
 				ushort inputMove = inputtedMoves [0];
 				int movePieceCode = PieceTypeCodeFromNotation (cleanedInput) + ((Board.IsWhiteToPlay ()) ? 1 : 0);
 				ushort[] legalMoves = moveGen.GetMoves (false, false).moves;
@@ -65,20 +99,13 @@ public class NotationInput : MonoBehaviour {
 				if ((movePieceCode & ~1) == Board.kingCode || (movePieceCode & ~1) == Board.pawnCode) { // king and pawn moves can't be ambiguous
 					ambiguousCaseSpecified = true;
 				}
-				bool moveIsLegal = false;
+
 				bool moveIsAmbiguous = false;
-				int movesFoundFollowingInput = 0;
 
-				for (int i =0; i < legalMoves.Length; i ++) {
-					if (legalMoves [i] == inputMove) {
-						moveIsLegal = true;
+				if (!ambiguousCaseSpecified) { // check if case is ambiguous if no specification has been given in input
+					int movesFoundFollowingInput = 0;
 
-						if (ambiguousCaseSpecified) {
-							break;
-						}
-					}
-
-					if (!ambiguousCaseSpecified) { // check if case is ambiguous if no specification has been given in input
+					for (int i =0; i < legalMoves.Length; i ++) {
 						int moveFromIndex = legalMoves [i] & 127;
 						int moveToIndex = (legalMoves [i] >> 7) & 127;
 						if (Board.boardArray [moveFromIndex] == movePieceCode && moveToIndex == ((inputMove >> 7) & 127)) { // is move as described by input string
@@ -91,24 +118,30 @@ public class NotationInput : MonoBehaviour {
 					}
 				}
 
-				if (moveIsLegal) {
-					if (moveIsAmbiguous) {
-						print ("Move ambiguous");
-					} else {
-						Board.MakeMove (inputMove, true);
-						print ("Move made");
+				if (moveIsAmbiguous) {
+					print ("Move is ambiguous");
+				}
+				else {
+					if (player != null) {
+						player.TryMakeMove(inputMove);
 					}
-				} else {
-					print ("Move illegal");
+					return true;
 				}
 			}
 			else {
-				print ("Move format rejected");
+				print ("Move illegal/incorrect format");
 			}
-
-		} else {
-			print ("Move empty");
 		}
+
+		return false;
+	}
+
+	public void Freeze() {
+		inputFrozen = true;
+	}
+
+	public void UnFreeze() {
+		inputFrozen = false;
 	}
 
 	int PieceTypeCodeFromNotation(string notation) {

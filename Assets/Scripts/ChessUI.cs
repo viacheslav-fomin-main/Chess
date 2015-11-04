@@ -81,6 +81,7 @@ public class ChessUI : MonoBehaviour {
 	public void SetBoardOrientation(bool white) {
 		boardOrientationWhite = white;
 		CreateBoardUI ();
+		AutoUpdate ();
 	}
 
 	/// <summary>
