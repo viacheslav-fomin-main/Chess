@@ -30,10 +30,15 @@ public class PGNDisplay : MonoBehaviour {
 				int size = -30 * (Board.GetFullMoveCount () - 14);
 				contentBounds.offsetMin = new Vector2 (contentBounds.offsetMin.x, size);
 				contentBounds.offsetMax = new Vector2 (contentBounds.offsetMax.x, 0);
-				scroller.value = 0; // auto scroll to keep current moves in view
-			}
-		}
+				//print (scroller.value);
+				//scroller.value = 0; // auto scroll to keep current moves in view
 
+				//scroller.
+			}
+
+		}
+	
 
 	}
+
 }

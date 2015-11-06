@@ -34,6 +34,7 @@ public class ChessUI : MonoBehaviour {
 	public Sprite none;
 
 	public bool boardOrientationWhite = true;
+	bool highlightLegalMoves = true;
 
 
 	// board (0,0) = a1; (7,7) = h8
@@ -65,12 +66,21 @@ public class ChessUI : MonoBehaviour {
 		}
 	}
 
+	public void SetHightlightLegalMoves(bool highlight) {
+		highlightLegalMoves = highlight;
+	}
+
 	public void SetBoardVisibility(bool visible) {
 		boardVisibilityController.SetActive (visible);
 	}
 
 	public void SetPieceVisiblity(bool visible) {
-		pieceVisibilityController.SetActive (visible);
+		for (int i = 0; i < 8; i ++) {
+			for (int j = 0; j < 8; j ++) {
+				pieceSquares [i, j].color = (visible) ? Color.white : Color.clear;
+			}
+		}
+
 	}
 
 	public void FlipBoard() {
@@ -88,10 +98,12 @@ public class ChessUI : MonoBehaviour {
 	/// Highlight the given square (algebraic coordinate)
 	/// </summary>
 	public void HighlightSquare(string squaresToHighlight) {
-		int squareX = GetIndex(Definitions.fileNames.IndexOf (squaresToHighlight [0]));
-		int squareY = GetIndex(Definitions.rankNames.IndexOf (squaresToHighlight [1]));
+		if (highlightLegalMoves) {
+			int squareX = GetIndex (Definitions.fileNames.IndexOf (squaresToHighlight [0]));
+			int squareY = GetIndex (Definitions.rankNames.IndexOf (squaresToHighlight [1]));
 
-		squares [squareX, squareY].material.color = themes[themeIndex].legalMoveHighlight;
+			squares [squareX, squareY].material.color = themes [themeIndex].legalMoveHighlight;
+		}
 	}
 
 	public void HighlightMove(int fromIndex, int toIndex) {
@@ -126,7 +138,6 @@ public class ChessUI : MonoBehaviour {
 
 	public void CreateBoardUI () {
 		board = new char[8,8];
-
 		// Create new holder objects for easy organisation/deletion of board UI elements
 		string holderName = "UI Holder";
 
@@ -201,12 +212,14 @@ public class ChessUI : MonoBehaviour {
 	}
 
 	void PaintBoard(Color light, Color dark) {
-		for (int i = 0; i < 8; i ++) {
-			for (int j = 0; j < 8; j ++) {
-				int x = GetIndex(j);
-				int y = GetIndex(i);
-				bool isLightSquare = SquareIsWhite(x,y);
-				squares[x,y].sharedMaterial.color = (isLightSquare)?light:dark;
+		if (squares != null) {
+			for (int i = 0; i < 8; i ++) {
+				for (int j = 0; j < 8; j ++) {
+					int x = GetIndex(j);
+					int y = GetIndex(i);
+					bool isLightSquare = SquareIsWhite(i,x);
+					squares[x,y].sharedMaterial.color = (isLightSquare)?light:dark;
+				}
 			}
 		}
 	}

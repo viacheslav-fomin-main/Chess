@@ -249,6 +249,7 @@ public static class Board {
 	/// Note that move is assumed to be legal
 	public static void MakeMove (ushort move, bool updateUI = false)
 	{
+	
 		ushort newGamestate = (ushort)(currentGamestate & 31); // only copy side to move and castling rights from current gamestate (0000000000011111)
 		
 		int colourToMove = currentGamestate & 1;

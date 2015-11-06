@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class HumanPlayer : Player {
 
 	public static Stack<ushort> movesMade = new Stack<ushort>();
-	public static ushort[] legalMoves;
+	public static Heap legalMoves;
 
 	public override void Init (bool white) {
 		base.Init (white);
@@ -28,10 +28,10 @@ public class HumanPlayer : Player {
 	/// </summary>
 	public void TryMakeMove(string algebraicMove) {
 		if (isWhite == Board.IsWhiteToPlay()) {
-
-			for (int i = 0; i < legalMoves.Length; i ++) {
-				int moveFromIndex = legalMoves[i] & 127;
-				int moveToIndex = (legalMoves[i] >> 7) & 127;
+			legalMoves = moveGenerator.GetMoves(false,false);
+			for (int i = 0; i < legalMoves.Count; i ++) {
+				int moveFromIndex = legalMoves.GetMove(i) & 127;
+				int moveToIndex = (legalMoves.GetMove(i) >> 7) & 127;
 				
 				int moveFromX = Board.Convert128to64(moveFromIndex) % 8;
 				int moveFromY = Board.Convert128to64(moveFromIndex) / 8;
@@ -45,7 +45,7 @@ public class HumanPlayer : Player {
 
 				string moveCoords = fromAlgebraic + toAlgebraic;
 				if (moveCoords == algebraicMove) { // move confirmed as legal
-					MakeMove(legalMoves[i]);
+					MakeMove(legalMoves.GetMove(i));
 					break;
 				}
 			}
@@ -59,7 +59,7 @@ public class HumanPlayer : Player {
 	public override void RequestMove ()
 	{
 		base.RequestMove ();
-		legalMoves = moveGenerator.GetMoves (false, false).moves;
+		legalMoves = moveGenerator.GetMoves (false, false);
 	}
 
 }

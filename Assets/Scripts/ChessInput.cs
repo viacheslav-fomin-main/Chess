@@ -42,9 +42,9 @@ public class ChessInput : MonoBehaviour {
 			holdingPiece = TryGetPieceUIAtPoint(mousePosition, out pieceHeld);
 			if (holdingPiece && isPlayerMove) {
 				// highlight legal moves for held piece
-				ushort[] legalMoves = HumanPlayer.legalMoves;
-				for (int i =0; i < legalMoves.Length; i ++) {
-					HighlightSquare(legalMoves[i], pieceHeld.algebraicCoordinate);
+				Heap legalMoveHeap = HumanPlayer.legalMoves;
+				for (int i =0; i < legalMoveHeap.Count; i ++) {
+					HighlightSquare(legalMoveHeap.GetMove(i), pieceHeld.algebraicCoordinate);
 
 				}
 
@@ -84,12 +84,8 @@ public class ChessInput : MonoBehaviour {
 		string fromAlgebraic = Definitions.fileNames[moveFromX].ToString() + Definitions.rankNames[moveFromY].ToString();
 		string toAlgebraic = Definitions.fileNames[moveToX].ToString() + Definitions.rankNames[moveToY].ToString();
 
-		if (moveFromIndex == 4) {
-			//print(moveToIndex + "  " + move + "   " + fromAlgebraic + toAlgebraic);
-		}
-	//	print ("Move: " + fromAlgebraic + toAlgebraic);
 		if (fromAlgebraic == pieceHeld.algebraicCoordinate) {
-			ChessUI.instance.HighlightSquare(toAlgebraic);
+			ChessUI.instance.HighlightSquare (toAlgebraic);
 		}
 	}
 	

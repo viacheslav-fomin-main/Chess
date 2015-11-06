@@ -61,7 +61,6 @@ public class MoveGenerator {
 		opponentColour = 1-moveColour;
 		friendlyKingIndex = (moveColour == 1)?Board.whiteKingIndex:Board.blackKingIndex;
 		return SquareAttackedByEnemy (friendlyKingIndex);
-
 	}
 
 	/// Not optimised; only intended for use by UI etc

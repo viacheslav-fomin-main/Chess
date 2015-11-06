@@ -5,9 +5,10 @@ using System;
 public class GameManager : MonoBehaviour {
 
 	MoveManager playerManager;
+	public enum GameMode {Regular, BlindfoldWithBoard01, BlindfoldWithBoard02, BlindfoldSansBoard01, BlindfoldSansBoard02};
 
 	[Header("Game mode:")]
-	public bool blindfold;
+	public GameMode gameMode;
 
 	[Space(15)]
 	public bool regenerateOpeningBook;
@@ -45,5 +46,16 @@ public class GameManager : MonoBehaviour {
 
 	}
 
+	public void Resign() {
+
+	}
+
+	public void Draw() {
+
+	}
+
+	public void ReturnToMenu() {
+
+	}
 
 }

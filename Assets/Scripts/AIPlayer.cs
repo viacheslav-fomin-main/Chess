@@ -7,6 +7,12 @@ public class AIPlayer : Player {
 	Search searcher;
 	bool moveRequested;
 
+	bool useBuiltinMoveDelay = true;
+	float defaultDelayBetweenMoves = 1f;
+	float moveSearchStartTime;
+	ushort pendingMove;
+	bool moveFound;
+
 	ushort sic = 8546;
 	bool first = true;
 
@@ -16,8 +22,8 @@ public class AIPlayer : Player {
 		searcher = new Search ();
 	}
 
-	public override void RequestMove ()
-	{
+	public override void RequestMove () {
+		moveSearchStartTime = UnityEngine.Time.time;
 
 		base.RequestMove ();
 
@@ -35,7 +41,7 @@ public class AIPlayer : Player {
 			}
 			if (moveGenerator.GetMoves(false,false).Contains(randomBookMove)) { // ensure book move is legal (possible for zobrist keys to have hashed wrong position)
 				UnityEngine.Debug.Log("Book move");
-				MakeMove(randomBookMove);
+				HandleAIMove(randomBookMove);
 				bookMovePlayed = true;
 			}
 			else {
@@ -48,12 +54,22 @@ public class AIPlayer : Player {
 			searcher.StartSearch ();
 		}
 	}
+
+	void HandleAIMove(ushort move) {
+		pendingMove = move;
+		moveFound = true;
+	}
 	
 
 	public override void Update() {
 		if (searcher.finishedSearch && isMyMove && moveRequested) {
-			MakeMove(searcher.bestMoveSoFar);
+			HandleAIMove(searcher.bestMoveSoFar);
 			moveRequested = false;
+		}
+		if (useBuiltinMoveDelay && moveFound && UnityEngine.Time.time > moveSearchStartTime + defaultDelayBetweenMoves) {
+			MakeMove(pendingMove);
+			moveFound = false;
+			pendingMove = 0;
 		}
 	}
 

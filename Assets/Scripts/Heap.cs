@@ -24,6 +24,10 @@ public class Heap {
 		currentItemCount++;
 	}
 
+	public ushort GetMove(int index) {
+		return moves [index];
+	}
+
 	public bool Contains(ushort move) {
 		for (int i = 0; i < moves.Length; i ++) {
 			if (moves[i] == move) {
