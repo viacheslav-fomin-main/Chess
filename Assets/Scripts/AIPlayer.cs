@@ -8,7 +8,7 @@ public class AIPlayer : Player {
 	bool moveRequested;
 
 	bool useBuiltinMoveDelay = true;
-	float defaultDelayBetweenMoves = 1f;
+	float defaultDelayBetweenMoves = .75f;
 	float moveSearchStartTime;
 	ushort pendingMove;
 	bool moveFound;
@@ -20,6 +20,9 @@ public class AIPlayer : Player {
 	{
 		base.Init (white);
 		searcher = new Search ();
+		if (GameManager.instance.gameMode == GameManager.GameMode.Regular) {
+			useBuiltinMoveDelay = false;
+		}
 	}
 
 	public override void RequestMove () {
@@ -66,7 +69,7 @@ public class AIPlayer : Player {
 			HandleAIMove(searcher.bestMoveSoFar);
 			moveRequested = false;
 		}
-		if (useBuiltinMoveDelay && moveFound && UnityEngine.Time.time > moveSearchStartTime + defaultDelayBetweenMoves) {
+		if (moveFound && (useBuiltinMoveDelay || UnityEngine.Time.time > moveSearchStartTime + defaultDelayBetweenMoves)) {
 			MakeMove(pendingMove);
 			moveFound = false;
 			pendingMove = 0;

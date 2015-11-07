@@ -56,6 +56,26 @@ public class MoveManager : MonoBehaviour {
 		RequestMove ();
 	}
 
+	void GameOver(int result) {
+		if (OnGameOver != null) {
+			OnGameOver(result);
+		}
+		whitePlayer.Deactivate ();
+		blackPlayer.Deactivate ();
+	}
+
+	public void Resign() {
+		GameOver (-1);
+	}
+	
+	public void Draw() {
+	
+	}
+
+	public void TimeOut(bool white) {
+		GameOver((white)?-1:1);
+	}
+
 	void OnMove(ushort move) {
 		if (OnMoveMade != null) {
 			OnMoveMade(whiteToPlay, move);
@@ -66,11 +86,10 @@ public class MoveManager : MonoBehaviour {
 
 		// detect mate/stalemate
 		if (moveGenerator.PositionIsMate ()) {
-			if (OnGameOver != null) {
-				OnGameOver(((whiteToPlay)?-1:1)); // player is mated
-			}
+			GameOver(((whiteToPlay)?-1:1)); // player is mated
+			
 		} else if (moveGenerator.PositionIsStaleMate ()) {
-			OnGameOver(0); // player is mated
+			GameOver(0); // player is mated
 		} else {
 
 			if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {

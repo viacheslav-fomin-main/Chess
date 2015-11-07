@@ -11,6 +11,7 @@ public class Player {
 	public Action<ushort> OnMove;
 
 	protected bool isWhite;
+	bool deactivated;
 
 	public virtual void Init(bool white) {
 
@@ -21,7 +22,7 @@ public class Player {
 
 	protected virtual void MakeMove(ushort move) {
 
-		if (move != 0) {
+		if (move != 0 && !deactivated) {
 			Board.MakeMove (move, true);
 			if (OnMove != null) {
 				OnMove (move);
@@ -40,6 +41,10 @@ public class Player {
 		get {
 			return isWhite == Board.IsWhiteToPlay ();
 		}
+	}
+
+	public void Deactivate() {
+		deactivated = true;
 	}
 
 }

@@ -5,7 +5,7 @@ public class Definitions {
 	public const string fileNames = "abcdefgh";
 	public const string rankNames = "12345678";
 	public enum PieceName {NA, Rook, Knight, Bishop, Queen, King, Pawn};
-	public enum ResultType {Checkmate, Resignation, Stalemate, InsufficientMaterial, Repetition, FiftyMoveRule};
+	public enum ResultType {Checkmate, Resignation, Stalemate, InsufficientMaterial, Repetition, FiftyMoveRule, Timeout};
 	
 	
 	public static string gameStartFen {

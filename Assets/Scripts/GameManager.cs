@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour {
 
 	MoveManager playerManager;
 	public enum GameMode {Regular, BlindfoldWithBoard01, BlindfoldWithBoard02, BlindfoldSansBoard01, BlindfoldSansBoard02};
+	public static int gameModeIndex;
+	public static bool gameModeIndexSet;
 
 	[Header("Game mode:")]
 	public GameMode gameMode;
@@ -29,6 +31,10 @@ public class GameManager : MonoBehaviour {
 	}
 	
 	void Start () {
+		if (gameModeIndexSet) {
+			gameMode = (GameMode)gameModeIndex;
+		}
+
 		Board.SetPositionFromFen (Definitions.gameStartFen,true);
 
 		ZobristKey.Init ();
@@ -46,16 +52,9 @@ public class GameManager : MonoBehaviour {
 
 	}
 
-	public void Resign() {
-
-	}
-
-	public void Draw() {
-
-	}
 
 	public void ReturnToMenu() {
-
+		Application.LoadLevel ("Menu");
 	}
 
 }

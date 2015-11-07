@@ -6,7 +6,6 @@ using System.Collections.Generic;
 public class NotationInput : MonoBehaviour {
 
 	Text inputUI;
-	public Text inputError;
 	MoveGenerator moveGen = new MoveGenerator();
 
 	string legalInputChars = "abcdefghrnbqk12345678o-x+#=";
@@ -17,9 +16,10 @@ public class NotationInput : MonoBehaviour {
 	bool inputFrozen;
 
 	HumanPlayer player;
+	UIManager uiManager;
 
 	void Start() {
-		inputError.gameObject.SetActive(false);
+		uiManager = FindObjectOfType<UIManager> ();
 	}
 
 	public void SetPlayer(HumanPlayer p) {
@@ -71,13 +71,9 @@ public class NotationInput : MonoBehaviour {
 		// enter
 		if (Input.GetKeyDown(KeyCode.Return)) {
 			if (!ValidateEntry()) {
-				inputError.text = "move illegal / incorrect format";
-				inputError.gameObject.SetActive(true);
+				uiManager.SetMessage("move illegal / incorrect format",2,true);
 				inputUI.text = "";
 				currentInput = "";
-			}
-			else {
-				inputError.gameObject.SetActive(false);
 			}
 		}
 	}
@@ -119,7 +115,7 @@ public class NotationInput : MonoBehaviour {
 				}
 
 				if (moveIsAmbiguous) {
-					print ("Move is ambiguous");
+					uiManager.SetMessage("move is ambiguous. please specify file/rank of piece you wish to move", 3, true);
 				}
 				else {
 					if (player != null) {
