@@ -10,8 +10,8 @@ public static class OpeningBookGenerator {
 
 	public static void GenerateBook() {
 		Timer.Start ("Book Generation");
-		string[] gmGames = Directory.GetFiles("Assets/Opening Book/GM Games", "*.pgn");
-		string[] openings = Directory.GetFiles("Assets/Opening Book/Openings", "*.pgn");
+		string[] gmGames = Directory.GetFiles("Assets/Opening Book/GM Games", "*.txt");
+		string[] openings = Directory.GetFiles("Assets/Opening Book/Openings", "*.txt");
 
 		ProcessFiles (gmGames, 60, 20); // for any gm game in database that lasted more than x ply, record first y ply
 		ProcessFiles (openings, 0, 50); // record first n ply from specially prepared openings database
@@ -23,6 +23,7 @@ public static class OpeningBookGenerator {
 
 	static void ProcessFiles(string[] files, int minGameLengthPly, int recordToPly) {
 
+		Board.SetPositionFromFen(Definitions.startFen);
 		
 		// Read pgns and convert to opening book dictionary
 		for (int fileIndex =0; fileIndex < files.Length; fileIndex ++) {
@@ -34,7 +35,7 @@ public static class OpeningBookGenerator {
 			int pgnIndex = -1;
 			bool finishedReadingPGN = false;
 			while (reader.Peek() != -1) {
-				string line = reader.ReadLine();
+				string line = reader.ReadLine() + " ";
 				if (line.Contains("[")) { // comment line
 					finishedReadingPGN = false;
 					readingPGN = false;
@@ -48,6 +49,7 @@ public static class OpeningBookGenerator {
 							pgnIndex ++;
 						}
 						if (readingPGN) {
+						
 							pgns[pgnIndex] += line[charIndex] + "";
 							if (pgns[pgnIndex].Split('.').Length * 2 > recordToPly) { // only record the first n moves for opening book
 								finishedReadingPGN = true;
@@ -59,17 +61,17 @@ public static class OpeningBookGenerator {
 			}
 
 			reader.Close();
-			
+
 			// get moves from pgn files
 			for (int i = 0; i < pgns.Count; i ++) {
-				string pgn  =pgns[i];
+				string pgn  = pgns[i];
+
 				if (pgn.Split('.').Length * 2 < minGameLengthPly) { // don't record games that were shorter than minGameLengthPly. This is to avoid games where an opening distaster occured
 					continue;
 				}
-				
+
 				List<string> moveStrings = PGNReader.MoveStringsFromPGN(pgn);
 				List<ushort> moves = PGNReader.MovesFromPGN(pgn);
-				Board.SetPositionFromFen(Definitions.startFen);
 				
 				for (int j =0; j < moves.Count; j ++) {
 					if (!book.ContainsKey(Board.zobristKey)) {
@@ -81,6 +83,10 @@ public static class OpeningBookGenerator {
 					}
 					Board.MakeMove(moves[j]);
 				}
+				for (int k = moves.Count-1; k>= 0; k --) {
+					Board.UnmakeMove(moves[k]);
+				}
+
 			}
 			
 			
@@ -90,7 +96,7 @@ public static class OpeningBookGenerator {
 
 	static void WriteToFile() {
 		// Write book to file
-		StreamWriter writer = new StreamWriter ("Assets/Opening Book/Book.txt");
+		StreamWriter writer = new StreamWriter ("Assets/Resources/Book.txt");
 		
 		for (int i =0; i < keys.Count; i ++) {
 			List <ushort> moves = book[keys[i]];
@@ -105,4 +111,5 @@ public static class OpeningBookGenerator {
 		writer.Close ();
 	}
 
+	
 }

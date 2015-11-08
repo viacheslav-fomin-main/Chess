@@ -103,7 +103,8 @@ public class PGNReader {
 
 			}
 			if (move == 0) { // move is illegal; discard and return moves up to this point
-				return allMoves;
+				UnityEngine.Debug.Log(moveString);
+				break;
 			}
 			else {
 				allMoves.Add(move);

@@ -28,6 +28,14 @@ public class MoveManager : MonoBehaviour {
 		AIPlayer whiteAI = null;
 		AIPlayer blackAI = null;
 
+		if (blackPlayerType == PlayerType.Human) {
+			ChessUI.instance.SetBoardOrientation(false);
+			blackHuman = new HumanPlayer ();
+			boardInput.AddPlayer (blackHuman);
+		} else {
+			blackAI = new AIPlayer ();
+		}
+
 		if (whitePlayerType == PlayerType.Human) {
 			ChessUI.instance.SetBoardOrientation(true);
 			whiteHuman = new HumanPlayer ();
@@ -35,13 +43,6 @@ public class MoveManager : MonoBehaviour {
 			FindObjectOfType<NotationInput>().SetPlayer(whiteHuman);
 		} else {
 			whiteAI = new AIPlayer ();
-		}
-		if (blackPlayerType == PlayerType.Human) {
-			ChessUI.instance.SetBoardOrientation(false);
-			blackHuman = new HumanPlayer ();
-			boardInput.AddPlayer (blackHuman);
-		} else {
-			blackAI = new AIPlayer ();
 		}
 
 		whitePlayer = (Player)whiteHuman ?? (Player)whiteAI;

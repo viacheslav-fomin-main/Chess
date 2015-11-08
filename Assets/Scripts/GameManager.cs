@@ -42,7 +42,9 @@ public class GameManager : MonoBehaviour {
 		if (regenerateOpeningBook) {
 			OpeningBookGenerator.GenerateBook ();
 		}
-		OpeningBookReader.Init ();
+		if (useOpeningBook) {
+			OpeningBookReader.Init ();
+		}
 
 		playerManager = GetComponent<MoveManager> ();
 

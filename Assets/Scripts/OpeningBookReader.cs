@@ -1,44 +1,48 @@
 ﻿using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System;
+//using System;
+using UnityEngine;
 
 public static class OpeningBookReader {
-
-	static Dictionary<ulong, List<ushort>> book;
-
-	public static void Init() {
-
-		book = new Dictionary<ulong, List<ushort>> ();
-		StreamReader reader = new StreamReader ("Assets/Opening Book/Book.txt");
 	
-		while (reader.Peek() != -1) {
-			string line = reader.ReadLine();
+	static Dictionary<ulong, List<ushort>> book;
+	static bool initialized;
+	
+	public static void Init() {
+		initialized = true;
+		book = new Dictionary<ulong, List<ushort>> ();
+		TextAsset bookFile = (TextAsset)Resources.Load ("Book", typeof(TextAsset));
+		string[] lines = bookFile.text.Split ('\n');
+
+		for (int lineIndex = 0; lineIndex < lines.Length; lineIndex ++) {
+			string line = lines[lineIndex];
 			string[] sections = line.Split(' ');
-
-			if (sections.Length > 0) {
-				ulong zobristKey = Convert.ToUInt64(sections[0]);
+			
+			if (sections.Length > 1) {
+				ulong zobristKey = System.Convert.ToUInt64(sections[0]);
 				List<ushort> moves = new List<ushort>();
-
+				
 				for (int i = 1; i < sections.Length; i ++) {
-					moves.Add(Convert.ToUInt16(sections[i]));
+					moves.Add(System.Convert.ToUInt16(sections[i]));
 				}
-
+				
 				if (!book.ContainsKey(zobristKey)) {
 					book.Add(zobristKey, moves);
 				}
 			}
 		}
-		reader.Close ();
 	}
-
+	
 	public static List<ushort> GetBookMoves() {
 		return book [Board.zobristKey];
 	}
-
+	
 	public static bool IsInBook() {
-		//UnityEngine.Debug.Log (Board.zobristKey + "  " +  book.ContainsKey(Board.zobristKey));
+		if (!initialized) {
+			return false;
+		}
 		return book.ContainsKey(Board.zobristKey);
 	}
-
+	
 }
