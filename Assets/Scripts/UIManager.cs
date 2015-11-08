@@ -61,6 +61,9 @@ public class UIManager : MonoBehaviour {
 		case GameManager.GameMode.Regular:
 			SetVisibilityUIElements(notationInputSmall);
 			SetVisibilityUIElements(true, clocks, pgnViewer);
+			ChessUI.instance.SetHightlightLegalMoves(true);
+			ChessUI.instance.SetBoardVisibility(true);
+			ChessUI.instance.SetPieceVisiblity(true);
 			break;
 		case GameManager.GameMode.BlindfoldWithBoard01:
 			ChessUI.instance.SetPieceVisiblity(false);
@@ -108,9 +111,15 @@ public class UIManager : MonoBehaviour {
 
 	public void EnterReviewMode() {
 		if (gameOver) {
-			inReviewMode = true;
-			SetVisibilityUIElements (true, reviewUI);
-			SetVisibilityUIElements (false, clocks, notationInputSmall);
+			if (!inReviewMode) {
+				GameManager.instance.gameMode = GameManager.GameMode.Regular; // switch to regular mode for game review
+				Reset();
+
+				inReviewMode = true;
+				SetVisibilityUIElements (true, reviewUI);
+				SetVisibilityUIElements (false, clocks, notationInputSmall);
+				FindObjectOfType<GameReviewer>().Init();
+			}
 		} else {
 			SetMessage("Cannot review while game is in progress", 5, true);
 		}
