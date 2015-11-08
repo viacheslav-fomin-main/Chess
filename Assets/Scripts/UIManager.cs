@@ -152,18 +152,45 @@ public class UIManager : MonoBehaviour {
 		}
 	}
 
-	void OnGameOver(int result) {
+	void OnGameOver(int result, Definitions.ResultType type) {
 		gameOver = true;
 		SetVisibilityUIElements (false, notationInputSmall, clocks);
+
 		string resultString = "Game over";
 		if (result == -1) {
 			resultString = "Black wins";
-		} else if (result == 0) {
-			resultString = "Game drawn";
 		}
 		else if (result == 1) {
 			resultString = "White wins";
 		}
+		if (result != 0) { // someone has won
+			if (type == Definitions.ResultType.Checkmate) {
+				resultString += " by checkmate";
+			}
+			else if (type == Definitions.ResultType.Resignation) {
+				resultString += " by resignation";
+			}
+			else if (type == Definitions.ResultType.Timeout) {
+				resultString += " on time";
+			}
+		} else { // draw
+			resultString = "Game drawn";
+
+			if (type == Definitions.ResultType.Repetition) {
+				resultString += " by repetition";
+			}
+			else if (type == Definitions.ResultType.InsufficientMaterial) {
+				resultString += "; insufficient mating material";
+			}
+			else if (type == Definitions.ResultType.FiftyMoveRule) {
+				resultString += "; 50 move rule";
+			}
+			else if (type == Definitions.ResultType.Stalemate) {
+				resultString += " by stalemate";
+			}
+		}
+
+
 		SetMessage (resultString, 10, false);
 	}
 

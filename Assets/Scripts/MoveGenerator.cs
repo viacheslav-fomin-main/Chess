@@ -72,6 +72,21 @@ public class MoveGenerator {
 		return (GetMoves (false, false).Count == 0 && !PositionIsCheck());
 	}
 
+	public bool InsuffientMatingMaterial() {
+		// can mate (unless some sort of blockade, but not considering that for the moment) if there are any pawns, rooks or queens left on the board.
+		if (Board.blackPawnCount + Board.whitePawnCount != 0 || Board.blackQueenCount + Board.whiteQueenCount != 0 || Board.blackRookCount + Board.whiteRookCount != 0) {
+			return false;
+		}
+
+		// if either side has two bishops mate is still possible (taken for granted that bishops are of diff colour, though of course through promotion it is possible that they are not)
+		if (Board.blackBishopCount >= 2 || Board.whiteBishopCount >= 2) {
+			return false;
+		}
+
+
+		return true;
+	}
+
 	void GenerateMove(int moveFromIndex) {
 		int moveToIndex;
 

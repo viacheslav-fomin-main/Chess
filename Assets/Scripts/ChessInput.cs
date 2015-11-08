@@ -13,8 +13,15 @@ public class ChessInput : MonoBehaviour {
 	List<HumanPlayer> players = new List<HumanPlayer>();
 	bool active;
 
+
 	void Start() {
 		viewCamera = Camera.main;
+		FindObjectOfType<MoveManager>().OnGameOver += HandleOnGameOver;
+	}
+
+	void HandleOnGameOver (int result, Definitions.ResultType type)
+	{
+		active = false;
 	}
 
 	public void AddPlayer(HumanPlayer player) {
@@ -23,7 +30,7 @@ public class ChessInput : MonoBehaviour {
 	}
 
 	void Update() {
-		if (!active) { // input is active if one or more players have been assigned to it
+		if (!active) { // input is active if one or more players have been assigned to it (or game is over)
 			return;
 		}
 
@@ -101,4 +108,5 @@ public class ChessInput : MonoBehaviour {
 		return false;
 	}
 	
+
 }

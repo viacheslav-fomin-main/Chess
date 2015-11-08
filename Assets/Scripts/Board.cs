@@ -51,6 +51,8 @@ public static class Board {
 	public static int blackBishopCount;
 
 	public static int halfmoveCount;
+	static Dictionary<ulong, int> threefoldRepCheck = new Dictionary<ulong, int> ();
+	public static int halfmoveCountSinceLastPawnMoveOrCap;
 	
 	static Stack<ushort> gameStateHistory = new Stack<ushort> ();
 	
@@ -402,17 +404,35 @@ public static class Board {
 		newGamestate ^= 1; // toggle side to move
 		newGamestate |= (ushort)(capturedPieceCode << 9); // set last captured piece type
 		gameStateHistory.Push (newGamestate);
+
+		if (updateUI) {
+			// pawn move and captures are irreversible and as such threefold repition history can be cleared
+			if (movePieceType == pawnCode || capturedPieceCode != 0) {
+				halfmoveCountSinceLastPawnMoveOrCap = 0;
+				threefoldRepCheck.Clear();
+			}
+			// add position to dictionary to check for three fold rep upon request
+			else {
+				halfmoveCountSinceLastPawnMoveOrCap ++;
+				if (!threefoldRepCheck.ContainsKey(zobristKey)) {
+					threefoldRepCheck.Add(zobristKey,1);
+				}
+				else {
+					threefoldRepCheck[zobristKey] ++;
+				}
+			}
+		}
 		
 		if (debugMode) {
 			DebugGameState (newGamestate);
 		}
 		
 		if (updateUI) {
-			UpdatePhysicalBoard(moveFromIndex, moveToIndex);
+			UpdatePhysicalBoardWithMoveHighlights(moveFromIndex, moveToIndex);
 		}
 	}
 	
-	static void UpdatePhysicalBoard(int moveFromIndex, int moveToIndex) {
+	static void UpdatePhysicalBoardWithMoveHighlights(int moveFromIndex, int moveToIndex) {
 		ChessUI.instance.AutoUpdate ();
 		ChessUI.instance.HighlightMove (moveFromIndex, moveToIndex);
 	}
@@ -461,7 +481,9 @@ public static class Board {
 	public static void SetPositionFromFen (string fen, bool updateBoardUI = true)
 	{
 		Init ();
-		
+		threefoldRepCheck.Clear ();
+		halfmoveCountSinceLastPawnMoveOrCap = 0;
+
 		boardArray = new int[128];
 		boardColourArray = new int[128];
 		for (int i = 0; i <= 127; i ++) { // clear colour array (all values to -1)
@@ -578,6 +600,16 @@ public static class Board {
 			UpdatePhysicalBoard ();
 		}
 
+	}
+
+	public static bool ThreefoldRepetition() {
+		foreach (int n in threefoldRepCheck.Values) {
+			if (n >= 3) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	public static bool IsWhiteToPlay() {

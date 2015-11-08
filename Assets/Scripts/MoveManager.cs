@@ -16,8 +16,9 @@ public class MoveManager : MonoBehaviour {
 
 	ChessInput boardInput;
 	public event Action<bool, ushort> OnMoveMade;
-	public event Action<int> OnGameOver; // result (-1;0;1) (black wins; draw; white wins)
+	public event Action<int, Definitions.ResultType> OnGameOver; // result (-1;0;1) (black wins; draw; white wins)
 	MoveGenerator moveGenerator = new MoveGenerator();
+	bool gameOver;
 
 	public void CreatePlayers() {
 		boardInput = GetComponent<ChessInput> ();
@@ -56,20 +57,28 @@ public class MoveManager : MonoBehaviour {
 		RequestMove ();
 	}
 
-	void GameOver(int result) {
-		if (OnGameOver != null) {
-			OnGameOver(result);
+	void GameOver(int result, Definitions.ResultType resultType = Definitions.ResultType.NA) {
+		if (!gameOver) {
+			gameOver = true;
+			if (OnGameOver != null) {
+				OnGameOver (result, resultType);
+			}
+			whitePlayer.Deactivate ();
+			blackPlayer.Deactivate ();
 		}
-		whitePlayer.Deactivate ();
-		blackPlayer.Deactivate ();
 	}
 
 	public void Resign() {
-		GameOver (-1);
+		GameOver (-1, Definitions.ResultType.Resignation);
 	}
-	
+
+	// draw requested by player
 	public void Draw() {
-	
+		if (Board.ThreefoldRepetition ()) {
+			GameOver (0, Definitions.ResultType.Repetition);
+		} else if (Board.halfmoveCountSinceLastPawnMoveOrCap >= 100) {
+			GameOver(0, Definitions.ResultType.FiftyMoveRule);
+		}
 	}
 
 	public void TimeOut(bool white) {
@@ -83,14 +92,16 @@ public class MoveManager : MonoBehaviour {
 
 		whiteToPlay = !whiteToPlay;
 
-
 		// detect mate/stalemate
 		if (moveGenerator.PositionIsMate ()) {
-			GameOver(((whiteToPlay)?-1:1)); // player is mated
+			GameOver (((whiteToPlay) ? -1 : 1), Definitions.ResultType.Checkmate); // player is mated
 			
 		} else if (moveGenerator.PositionIsStaleMate ()) {
-			GameOver(0); // player is mated
-		} else {
+			GameOver (0, Definitions.ResultType.Stalemate); // player is mated
+		} else if (moveGenerator.InsuffientMatingMaterial ()) {
+			GameOver(0, Definitions.ResultType.InsufficientMaterial);
+		}
+		else {
 
 			if (whitePlayerType == PlayerType.AI && blackPlayerType == PlayerType.AI) {
 				StartCoroutine (RequestMoveCoroutine (.15f)); // force delay between moves when two AI are playing
