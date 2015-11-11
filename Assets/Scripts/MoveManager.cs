@@ -7,6 +7,8 @@ public class MoveManager : MonoBehaviour {
 	public enum PlayerType {Human, AI};
 	public PlayerType whitePlayerType;
 	public PlayerType blackPlayerType;
+	public AudioClip moveAudio;
+	public AudioClip captureAudio;
 
 	Player whitePlayer;
 	Player blackPlayer;
@@ -87,6 +89,16 @@ public class MoveManager : MonoBehaviour {
 	}
 
 	void OnMove(ushort move) {
+		int moveToIndex = (move >> 7) & 127;
+		int capturedPieceCode = Board.boardArray [moveToIndex]; // get capture piece code
+		if (capturedPieceCode == 0) {
+			AudioSource.PlayClipAtPoint (moveAudio, Vector3.zero, 1f);
+		} else {
+			AudioSource.PlayClipAtPoint (captureAudio, Vector3.zero, 1f);
+		}
+
+		Board.MakeMove (move, true);
+
 		if (OnMoveMade != null) {
 			OnMoveMade(whiteToPlay, move);
 		}

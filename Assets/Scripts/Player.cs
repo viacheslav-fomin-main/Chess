@@ -23,7 +23,7 @@ public class Player {
 	protected virtual void MakeMove(ushort move) {
 
 		if (move != 0 && !deactivated) {
-			Board.MakeMove (move, true);
+			//Board.MakeMove (move, true);
 			if (OnMove != null) {
 				OnMove (move);
 			}

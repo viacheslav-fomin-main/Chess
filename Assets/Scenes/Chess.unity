@@ -603,6 +603,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   whitePlayerType: 0
   blackPlayerType: 1
+  moveAudio: {fileID: 8300000, guid: 2c4225622e1224ca49d0c0c809427e8b, type: 3}
+  captureAudio: {fileID: 8300000, guid: 2b5f3eeae195945bdb0fa317c25be3a6, type: 3}
   whiteToPlay: 1
 --- !u!114 &71712210
 MonoBehaviour:
