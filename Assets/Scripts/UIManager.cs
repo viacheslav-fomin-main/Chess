@@ -11,9 +11,12 @@ public class UIManager : MonoBehaviour {
 	public GameObject reviewUI;
 	public Text messageUI;
 
+	public Button showBoardButton;
+	public Text showBoardRemainingText;
+	public GameObject reviewGameButton;
+
 	bool unhideBoardUIEveryXMoves;
-	int movesRemainingToBoardReveal;
-	int movesBetweenBoardReveals;
+	int remainingBoardRevealCount;
 	bool resetUINextMove;
 
 	int currentMessagePriority;
@@ -23,6 +26,8 @@ public class UIManager : MonoBehaviour {
 
 	bool gameOver;
 	bool inReviewMode;
+	bool hideBoard;
+	bool showingBoard;
 
 	void Awake() {
 		messageUI.text = "";
@@ -56,6 +61,7 @@ public class UIManager : MonoBehaviour {
 
 	void Reset() {
 		HideAllUIElements ();
+		hideBoard = false;
 
 		switch (GameManager.instance.gameMode) {
 		case GameManager.GameMode.Regular:
@@ -68,39 +74,38 @@ public class UIManager : MonoBehaviour {
 		case GameManager.GameMode.BlindfoldWithBoard01:
 			ChessUI.instance.SetPieceVisiblity(false);
 			unhideBoardUIEveryXMoves = true;
-			movesBetweenBoardReveals = 5;
-			SetVisibilityUIElements(true, pgnViewer);
+			remainingBoardRevealCount = 6;
+			SetVisibilityUIElements(true, pgnViewer, showBoardButton.gameObject);
 
 			break;
 		case GameManager.GameMode.BlindfoldWithBoard02:
 			ChessUI.instance.SetPieceVisiblity(false);
 			unhideBoardUIEveryXMoves = true;
-			movesBetweenBoardReveals = 10;
+			remainingBoardRevealCount = 2;
 			ChessUI.instance.SetHightlightLegalMoves(false);
-			SetVisibilityUIElements(true, pgnViewer);
+			SetVisibilityUIElements(true, pgnViewer, showBoardButton.gameObject);
 			break;
 		case GameManager.GameMode.BlindfoldSansBoard01:
 			ChessUI.instance.SetBoardVisibility(false);
 			unhideBoardUIEveryXMoves = true;
-			movesBetweenBoardReveals = 10;
+			remainingBoardRevealCount = 2;
 			ChessUI.instance.SetHightlightLegalMoves(false);
-			SetVisibilityUIElements(true, pgnViewer, notationInputSmall);
+			SetVisibilityUIElements(true, pgnViewer, notationInputSmall, showBoardButton.gameObject);
+			hideBoard = true;
 			break;
 		case GameManager.GameMode.BlindfoldSansBoard02:
 			ChessUI.instance.SetBoardVisibility(false);
 			SetVisibilityUIElements(true, notationInputSmall);
+			hideBoard = true;
 			//SetVisibilityUIElements(true, fullBlindfoldUI);
 			break;
 		}
-		
-		if (unhideBoardUIEveryXMoves) {
-			movesRemainingToBoardReveal = movesBetweenBoardReveals;
-			SetMessage("showing pieces in " + movesRemainingToBoardReveal + " move" + ((movesRemainingToBoardReveal>1)?"s":""), 0, true);
-		}
+		showBoardRemainingText.text = "(" + remainingBoardRevealCount + " remaining)";
+	
 	}
 
 	void HideAllUIElements() {
-		SetVisibilityUIElements (false, clocks, pgnViewer, notationInputSmall, fullBlindfoldUI, reviewUI);
+		SetVisibilityUIElements (false, clocks, pgnViewer, notationInputSmall, fullBlindfoldUI, reviewUI,showBoardButton.gameObject, reviewGameButton);
 	}
 
 	void SetVisibilityUIElements(bool visibility, params GameObject[] objects) {
@@ -110,21 +115,30 @@ public class UIManager : MonoBehaviour {
 	}
 
 	public void EnterReviewMode() {
-		if (gameOver) {
-			if (!inReviewMode) {
-				GameManager.instance.gameMode = GameManager.GameMode.Regular; // switch to regular mode for game review
-				Reset();
+		if (!inReviewMode) {
+			GameManager.instance.gameMode = GameManager.GameMode.Regular; // switch to regular mode for game review
+			Reset();
 
-				inReviewMode = true;
-				SetVisibilityUIElements (true, reviewUI);
-				SetVisibilityUIElements (false, clocks, notationInputSmall);
-				FindObjectOfType<GameReviewer>().Init();
-			}
-		} else {
-			SetMessage("Cannot review while game is in progress", 5, true);
+			inReviewMode = true;
+			SetVisibilityUIElements (true, reviewUI);
+			SetVisibilityUIElements (false, clocks, notationInputSmall, reviewGameButton, showBoardButton.gameObject);
+			FindObjectOfType<GameReviewer>().Init();
 		}
 	}
 
+	public void ShowBoard() {
+		if (remainingBoardRevealCount > 0 && !showingBoard) {
+			showingBoard = true;
+			remainingBoardRevealCount --;
+			showBoardRemainingText.text = "(" + remainingBoardRevealCount + " remaining)";
+
+			ChessUI.instance.SetBoardVisibility (true);
+			ChessUI.instance.SetPieceVisiblity (true);
+			resetUINextMove = true;
+		} else if (remainingBoardRevealCount == 0) {
+			showBoardButton.interactable = false;
+		}
+	}
 
 	void OnMoveMade(bool white, ushort move) {
 		currentMessageIsMoveOld = true;
@@ -134,27 +148,19 @@ public class UIManager : MonoBehaviour {
 			}
 		}
 
-		if (unhideBoardUIEveryXMoves && !white) {
-			movesRemainingToBoardReveal --;
-			messageUI.GetComponent<Text>().text = "showing board in " + movesRemainingToBoardReveal + " move" + ((movesRemainingToBoardReveal>1)?"s":"");
-			if (movesRemainingToBoardReveal == 0) {
-				messageUI.GetComponent<Text>().text = "showing board";
-				movesRemainingToBoardReveal = movesBetweenBoardReveals;
-				ChessUI.instance.SetBoardVisibility(true);
-				ChessUI.instance.SetPieceVisiblity(true);
-				resetUINextMove = true;
-			}
-		}
-
 		if (unhideBoardUIEveryXMoves && white && resetUINextMove) {
-			resetUINextMove = false;
-			Reset();
+			showingBoard = false;
+			ChessUI.instance.SetPieceVisiblity(false);
+			if (hideBoard) {
+				ChessUI.instance.SetBoardVisibility(false);
+			}
 		}
 	}
 
 	void OnGameOver(int result, Definitions.ResultType type) {
 		gameOver = true;
 		SetVisibilityUIElements (false, notationInputSmall, clocks);
+		SetVisibilityUIElements (true, reviewGameButton);
 
 		string resultString = "Game over";
 		if (result == -1) {

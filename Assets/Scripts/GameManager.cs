@@ -34,6 +34,9 @@ public class GameManager : MonoBehaviour {
 		if (gameModeIndexSet) {
 			gameMode = (GameMode)gameModeIndex;
 		}
+		if (gameMode == GameMode.Regular) {
+			GetComponent<Clock>().StartClock();
+		}
 
 		Board.SetPositionFromFen (Definitions.gameStartFen,true);
 

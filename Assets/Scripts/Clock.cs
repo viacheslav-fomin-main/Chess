@@ -14,7 +14,7 @@ public class Clock : MonoBehaviour {
 
 	public Text clockUIWhite;
 	public Text clockUIBlack;
-	bool stopClock;
+	bool stopClock = true;
 
 	void Start () {
 		playerManager = GetComponent<MoveManager> ();
@@ -22,6 +22,10 @@ public class Clock : MonoBehaviour {
 		playerManager.OnMoveMade += OnMoveMade;
 		secondsRemainingWhite = clockTimeSeconds;
 		secondsRemainingBlack = clockTimeSeconds;
+	}
+
+	public void StartClock() {
+		stopClock = false;
 	}
 
 	void Update() {

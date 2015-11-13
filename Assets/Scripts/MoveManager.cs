@@ -85,7 +85,7 @@ public class MoveManager : MonoBehaviour {
 	}
 
 	public void TimeOut(bool white) {
-		GameOver((white)?-1:1);
+		GameOver((white)?-1:1, Definitions.ResultType.Timeout);
 	}
 
 	void OnMove(ushort move) {
