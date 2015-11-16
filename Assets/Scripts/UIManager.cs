@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour {
 	public Button showBoardButton;
 	public Text showBoardRemainingText;
 	public GameObject reviewGameButton;
+	public GameObject copyPGNButton;
 
 	bool unhideBoardUIEveryXMoves;
 	int remainingBoardRevealCount;
@@ -28,6 +29,8 @@ public class UIManager : MonoBehaviour {
 	bool inReviewMode;
 	bool hideBoard;
 	bool showingBoard;
+
+	string resultStringShorthand;
 
 	void Awake() {
 		messageUI.text = "";
@@ -105,7 +108,7 @@ public class UIManager : MonoBehaviour {
 	}
 
 	void HideAllUIElements() {
-		SetVisibilityUIElements (false, clocks, pgnViewer, notationInputSmall, fullBlindfoldUI, reviewUI,showBoardButton.gameObject, reviewGameButton);
+		SetVisibilityUIElements (false, clocks, pgnViewer, notationInputSmall, fullBlindfoldUI, reviewUI,showBoardButton.gameObject, reviewGameButton, copyPGNButton);
 	}
 
 	void SetVisibilityUIElements(bool visibility, params GameObject[] objects) {
@@ -113,15 +116,15 @@ public class UIManager : MonoBehaviour {
 			objects[i].SetActive(visibility);
 		}
 	}
-
+	
 	public void EnterReviewMode() {
 		if (!inReviewMode) {
 			GameManager.instance.gameMode = GameManager.GameMode.Regular; // switch to regular mode for game review
 			Reset();
 
 			inReviewMode = true;
-			SetVisibilityUIElements (true, reviewUI);
-			SetVisibilityUIElements (false, clocks, notationInputSmall, reviewGameButton, showBoardButton.gameObject);
+			SetVisibilityUIElements (true, reviewUI,copyPGNButton);
+			SetVisibilityUIElements (false, clocks, notationInputSmall, reviewGameButton);
 			FindObjectOfType<GameReviewer>().Init();
 		}
 	}
@@ -159,14 +162,16 @@ public class UIManager : MonoBehaviour {
 
 	void OnGameOver(int result, Definitions.ResultType type) {
 		gameOver = true;
-		SetVisibilityUIElements (false, notationInputSmall, clocks);
+		SetVisibilityUIElements (false, notationInputSmall, clocks, showBoardButton.gameObject);
 		SetVisibilityUIElements (true, reviewGameButton);
 
 		string resultString = "Game over";
 		if (result == -1) {
+			resultStringShorthand = "0-1";
 			resultString = "Black wins";
 		}
 		else if (result == 1) {
+			resultStringShorthand = "1-0";
 			resultString = "White wins";
 		}
 		if (result != 0) { // someone has won
@@ -180,6 +185,7 @@ public class UIManager : MonoBehaviour {
 				resultString += " on time";
 			}
 		} else { // draw
+			resultStringShorthand = "1/2-1/2";
 			resultString = "Game drawn";
 
 			if (type == Definitions.ResultType.Repetition) {
@@ -200,6 +206,32 @@ public class UIManager : MonoBehaviour {
 		SetMessage (resultString, 10, false);
 	}
 
+	public void CopyPGNToClipboard() {
+		string dateString = System.DateTime.Today.Year + "." + System.DateTime.Today.Month + "." + System.DateTime.Today.Day;
+		string modeName = "Regular mode";
+		if (GameManager.gameModeIndex > 0) {
+			modeName = "Blindfold Training; level " + (GameManager.gameModeIndex);
+		}
 
+		string pgn = "";
 
+		pgn += "[Event \"" +modeName+ "\"]\n";
+		pgn += "[Site \"http://sebastian.itch.io/blindfoldchess\"]\n";
+		pgn += "[Date \"" + dateString + "\"]\n";
+		pgn += "[White \"Human\"]\n";
+		pgn += "[Black \"Computer\"]\n";
+		pgn += "[Result \"" + resultStringShorthand + "\"]\n";
+
+		pgn += "\n" + PGNDisplay.GetGamePGN ();
+		if (pgn [pgn.Length - 1] != ' ') {
+			pgn += " ";
+		}
+		pgn += resultStringShorthand;
+
+		TextEditor t = new TextEditor ();
+		t.content = new GUIContent (pgn);
+		t.SelectAll ();
+		t.Copy ();
+		Debug.Log (t.content.text);
+	}
 }

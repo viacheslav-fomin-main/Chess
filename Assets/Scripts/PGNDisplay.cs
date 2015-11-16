@@ -11,8 +11,10 @@ public class PGNDisplay : MonoBehaviour {
 	public Scrollbar scroller;
 	bool userControllingScrollbar;
 	bool relinquishUserScrollbarControlNextMove;
+	static string fullGamePGN;
 
 	void Start() {
+		fullGamePGN = "";
 		moveNumberUI.text = "";
 		moveNotationWhiteUI.text = "";
 		moveNotationBlackUI.text = "";
@@ -21,15 +23,18 @@ public class PGNDisplay : MonoBehaviour {
 
 
 	void OnMove(bool whiteMoved, ushort move) {
+
 		if (relinquishUserScrollbarControlNextMove) {
 			relinquishUserScrollbarControlNextMove = false;
 			userControllingScrollbar = false;
 		}
 
 		if (whiteMoved) {
+			fullGamePGN += (Board.GetFullMoveCount () + 1) + ". " +  PGNReader.NotationFromMove (move);
 			moveNumberUI.text += (Board.GetFullMoveCount () + 1) + ". \n";
 			moveNotationWhiteUI.text += PGNReader.NotationFromMove (move) + "\n";
 		} else {
+			fullGamePGN += " "  + PGNReader.NotationFromMove (move) + " ";
 			moveNotationBlackUI.text += PGNReader.NotationFromMove (move) + "\n";
 
 			if (Board.GetFullMoveCount () > 14) {
@@ -53,6 +58,10 @@ public class PGNDisplay : MonoBehaviour {
 
 	public void OnStopUsingScrollbar() {
 		relinquishUserScrollbarControlNextMove = true;
+	}
+
+	public static string GetGamePGN() {
+		return fullGamePGN;
 	}
 
 
