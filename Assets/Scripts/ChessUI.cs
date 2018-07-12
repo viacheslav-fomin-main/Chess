@@ -141,8 +141,8 @@ public class ChessUI : MonoBehaviour {
 		// Create new holder objects for easy organisation/deletion of board UI elements
 		string holderName = "UI Holder";
 
-		if (transform.FindChild (holderName)) {
-			GameObject holderOld = transform.FindChild(holderName).gameObject;
+		if (transform.Find (holderName)) {
+			GameObject holderOld = transform.Find(holderName).gameObject;
 			DestroyImmediate(holderOld);
 		}
 
